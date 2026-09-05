@@ -14,17 +14,17 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://inu-channel.yoroll.chatgpt.site'),
-  title: '犬ちゃんねる｜犬のYouTubeチャンネルまとめ',
-  description: '獣医師、しつけ、フード、ショップ、トリミング、飼い主さん。犬にまつわるYouTubeチャンネルをカテゴリから探せます。',
+  title: '犬ちゃんねる｜今日から君も、犬ドル推し。',
+  description: 'かわいい犬YouTubeを推し活感覚で探せる犬ドル名鑑。登録者数、再生数、最新動画を自動更新します。',
   openGraph: {
-    title: '犬ちゃんねる｜犬のYouTubeチャンネルまとめ',
-    description: '犬の動画と、いい出会いを。6つのカテゴリからお気に入りの犬チャンネルを探せます。',
+    title: '犬ちゃんねる｜今日から君も、犬ドル推し。',
+    description: 'かわいい、ためになる、何度でも見たい。犬YouTubeのセンター級動画を集めました。',
     images: ['/og.png'],
   },
   twitter: {
     card: 'summary_large_image',
-    title: '犬ちゃんねる｜犬のYouTubeチャンネルまとめ',
-    description: '犬の動画と、いい出会いを。',
+    title: '犬ちゃんねる｜今日から君も、犬ドル推し。',
+    description: '犬YouTubeのセンター級動画を集めた、犬ドル推し活サイト。',
     images: ['/og.png'],
   },
 };

@@ -1,13 +1,27 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { categoryInfo, channelSummaries, rankingDate, thumbnailFor, videos, youtubeFor } from './data';
 
 const breedOptions = ['すべて', ...Array.from(new Set(videos.map((video) => video.breed)))];
 const ageOptions = ['すべて', '子犬', '成犬', 'シニア', '全年齢'];
 const channelOptions = ['すべて', ...channelSummaries.map((channel) => channel.name)];
 
+type LiveData = {
+  updatedAt: string;
+  refreshHours: number;
+  channels: Record<string, { subscriber: string | null; avatar: string | null; latest: { id: string; title: string; published: string } | null }>;
+  videos: Record<string, number>;
+};
+
+const formatViews = (count: number) => count >= 100000000
+  ? `${(count / 100000000).toFixed(1)}億回`
+  : count >= 10000 ? `${(count / 10000).toFixed(1)}万回` : `${count.toLocaleString('ja-JP')}回`;
+
+const formatDate = (value: string) => new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
+
 export default function Home() {
+  const [live, setLive] = useState<LiveData | null>(null);
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState('すべて');
   const [breed, setBreed] = useState('すべて');
@@ -15,9 +29,22 @@ export default function Home() {
   const [channel, setChannel] = useState('すべて');
   const [sort, setSort] = useState('チャンネル別TOP順');
 
+  useEffect(() => {
+    const load = () => fetch('/api/youtube').then((response) => response.ok ? response.json() : Promise.reject()).then(setLive).catch(() => undefined);
+    load();
+    const timer = window.setInterval(load, 30 * 60 * 1000);
+    return () => window.clearInterval(timer);
+  }, []);
+
+  const liveVideos = useMemo(() => videos.map((video) => ({ ...video, liveViewCount: live?.videos[video.id] ?? video.viewCount })), [live]);
+  const latestVideos = useMemo(() => channelSummaries.flatMap((item) => {
+    const latest = live?.channels[item.channelId]?.latest;
+    return latest ? [{ ...latest, channel: item.name }] : [];
+  }).slice(0, 6), [live]);
+
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    const result = videos.filter((video) => {
+    const result = liveVideos.filter((video) => {
       const haystack = `${video.title} ${video.channel} ${video.category} ${video.breed} ${video.age} ${video.description} ${video.tags.join(' ')}`.toLowerCase();
       return (!needle || haystack.includes(needle))
         && (category === 'すべて' || video.category === category)
@@ -25,36 +52,47 @@ export default function Home() {
         && (age === 'すべて' || video.age.includes(age) || video.age === '全年齢')
         && (channel === 'すべて' || video.channel === channel);
     });
-    if (sort === '再生数順') return [...result].sort((a, b) => b.viewCount - a.viewCount);
+    if (sort === '再生数順') return [...result].sort((a, b) => b.liveViewCount - a.liveViewCount);
     if (sort === '新しい順') return [...result].sort((a, b) => b.published.localeCompare(a.published));
     if (sort === 'タイトル順') return [...result].sort((a, b) => a.title.localeCompare(b.title, 'ja'));
     return result;
-  }, [query, category, breed, age, channel, sort]);
+  }, [query, category, breed, age, channel, sort, liveVideos]);
 
   const reset = () => { setQuery(''); setCategory('すべて'); setBreed('すべて'); setAge('すべて'); setChannel('すべて'); };
 
   return (
     <main>
       <header className="topbar">
-        <a className="brand" href="#top"><span className="brand-mark">犬</span><span>犬ちゃんねる</span></a>
-        <nav><a href="#videos">動画を探す</a><a href="#channels">チャンネル一覧</a><a href="#guide">使い方</a></nav>
-        <a className="submit-button" href="mailto:?subject=犬ちゃんねる掲載希望">＋ 掲載リクエスト</a>
+        <a className="brand" href="#top"><span className="brand-mark">犬</span><span>犬<em>ちゃんねる</em></span></a>
+        <nav><a href="#videos">推し動画</a><a href="#channels">犬ドル名鑑</a><a href="#guide">推しポイント</a></nav>
+        <a className="submit-button" href="mailto:?subject=犬ちゃんねる掲載希望">♡ 推薦する</a>
       </header>
 
-      <section className="hero compact" id="top">
+      <section className="hero" id="top">
         <div className="hero-copy">
-          <p className="eyebrow">DOG VIDEO DIRECTORY</p>
-          <h1>犬チャンネルの、<br/><em>いちばんバズった動画。</em></h1>
-          <p className="lead">各チャンネルの公開再生数TOP3を選び、<br/>動画の中身まで確認して要点をまとめました。</p>
-          <a className="hero-cta" href="#videos">動画を探す <span>↓</span></a>
+          <span className="hero-kicker">♡ 推したい犬、きっと見つかる ♡</span>
+          <p className="eyebrow">DOG IDOL VIDEO DIRECTORY</p>
+          <h1>今日から君も、<br/><em>犬ドル推し。</em></h1>
+          <p className="lead">かわいい、ためになる、何度でも見たい。<br/>犬YouTubeのセンター級動画だけを集めました。</p>
+          <div className="hero-actions"><a className="hero-cta" href="#videos">推し動画を探す <span>♡</span></a><a className="hero-cta secondary" href="#channels">犬ドル名鑑を見る</a></div>
+          <p className="hero-update"><span className="live-dot"/> YouTubeの公開情報を6時間ごとに自動チェック {live && `・最終取得 ${formatDate(live.updatedAt)}`}</p>
         </div>
-        <div className="hero-stats">
-          <div><b>{videos.length}</b><span>掲載動画</span></div><div><b>{channelSummaries.length}</b><span>チャンネル</span></div><div><b>6</b><span>専門カテゴリ</span></div>
+        <div className="idol-stage" aria-label="注目の犬動画">
+          <div className="idol-orbit"/><span className="idol-crown">♛</span><span className="idol-bubble">今週のセンター！</span>
+          {videos.filter((video) => video.rank === 1).slice(0, 3).map((video, index) => <a className={`idol-card ${['one','two','three'][index]}`} href={`/videos/${video.id}`} key={video.id}><img src={thumbnailFor(video.id)} alt={video.title}/><strong>{video.channel}</strong><small>人気 第1位 ♡</small></a>)}
+          <div className="hero-stats"><div><b>{videos.length}</b><span>推し動画</span></div><div><b>{channelSummaries.length}</b><span>犬ドル</span></div><div><b>6</b><span>部門</span></div></div>
+        </div>
+      </section>
+
+      <section className="latest-strip" aria-labelledby="latest-title">
+        <div className="latest-inner">
+          <div className="section-title-row"><div><p className="eyebrow">NEW RELEASE</p><h2 id="latest-title">犬ドルの最新動画 ♡</h2></div><span className="auto-badge"><span className="live-dot"/> 自動更新中</span></div>
+          {latestVideos.length ? <div className="latest-grid">{latestVideos.map((video) => <a className="latest-card" href={youtubeFor(video.id)} target="_blank" rel="noreferrer" key={video.id}><img src={thumbnailFor(video.id)} alt={`${video.title}のサムネイル`}/><div><small>{video.channel}</small><h3>{video.title}</h3><p>{new Date(video.published).toLocaleDateString('ja-JP')} 公開 ↗</p></div></a>)}</div> : <div className="latest-grid">{videos.slice(0, 6).map((video) => <a className="latest-card" href={youtubeFor(video.id)} target="_blank" rel="noreferrer" key={video.id}><img src={thumbnailFor(video.id)} alt={`${video.title}のサムネイル`}/><div><small>{video.channel}</small><h3>{video.title}</h3><p>最新情報を取得中…</p></div></a>)}</div>}
         </div>
       </section>
 
       <section className="finder" id="videos">
-        <div className="finder-head"><div><p className="eyebrow">MOST VIEWED TOP 3</p><h2>各チャンネル 人気動画1〜3位</h2></div><p>{rankingDate}時点の公開再生数を基準に集計。字幕・説明欄・映像を確認して要約しています。</p></div>
+        <div className="finder-head"><div><p className="eyebrow">OSHIMEN MOVIE FINDER</p><h2>推し動画を探そう ♡</h2></div><p>各チャンネルの人気1〜3位を収録。{rankingDate}の順位を基準に、現在の再生数は自動更新しています。</p></div>
         <div className="search-panel">
           <label className="search-box wide"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="例：柴犬、歯磨き、子犬のしつけ" /><button onClick={() => setQuery('')} aria-label="検索をクリア">×</button></label>
           <div className="select-row">
@@ -66,7 +104,7 @@ export default function Home() {
           <div className="category-chips">{categoryInfo.map((item) => <button key={item.name} onClick={() => setCategory(item.name)} className={category === item.name ? 'selected' : ''}>{item.icon} {item.name}</button>)}</div>
         </div>
 
-        <div className="results-head"><p><b>{filtered.length}</b> 本の動画</p><select value={sort} onChange={(event) => setSort(event.target.value)}><option>チャンネル別TOP順</option><option>再生数順</option><option>新しい順</option><option>タイトル順</option></select></div>
+        <div className="results-head"><p><b>{filtered.length}</b> 本の推し候補</p><select value={sort} onChange={(event) => setSort(event.target.value)}><option>チャンネル別TOP順</option><option>再生数順</option><option>新しい順</option><option>タイトル順</option></select></div>
         {filtered.length ? <div className="video-grid">{filtered.map((video) => (
           <article className="video-card" key={video.id}>
             <a className="video-thumb" href={`/videos/${video.id}`} aria-label={`${video.title}の詳細を見る`}>
@@ -78,7 +116,7 @@ export default function Home() {
               <h3><a href={`/videos/${video.id}`}>{video.title}</a></h3>
               <p className="channel-name">{video.channel}</p>
               <p className="checked-label">✓ 動画内容を確認して要約</p><p className="video-desc">{video.description}</p>
-              <div className="video-meta"><span>{video.published}</span><span>{video.views}</span></div>
+              <div className="video-meta"><span>{video.published}</span><span className="live-view">▶ {formatViews(video.liveViewCount)}</span></div>
               <div className="video-actions"><a className="detail-link" href={`/videos/${video.id}`}>詳しく見る →</a><a className="yt-link" href={youtubeFor(video.id)} target="_blank" rel="noreferrer">YouTube ↗</a>{video.instagram && <a className="ig-link" href={video.instagram} target="_blank" rel="noreferrer">Instagram ↗</a>}</div>
             </div>
           </article>
@@ -86,22 +124,24 @@ export default function Home() {
       </section>
 
       <section className="channel-section" id="channels">
-        <div className="finder-head"><div><p className="eyebrow">CHANNEL DIRECTORY</p><h2>チャンネルから探す</h2></div><p>各チャンネルの人気TOP3と、公式SNSをまとめました。</p></div>
+        <div className="finder-head"><div><p className="eyebrow">DOG IDOL DIRECTORY</p><h2>犬ドル名鑑 ♡</h2></div><p>登録者数・チャンネル画像・最新動画をYouTubeの公開情報から自動取得します。</p></div>
         <div className="channel-list">{channelSummaries.map((channel) => (
           <article className="channel-row" key={channel.name}>
-            <img src={channel.thumbnail} alt={`${channel.name}の代表動画サムネイル`} loading="lazy" />
+            <img src={live?.channels[channel.channelId]?.avatar || channel.thumbnail} alt={`${channel.name}のチャンネル画像`} loading="lazy" />
             <div className="channel-row-copy"><span>{channel.category}</span><h3>{channel.name}</h3><p>人気TOP3掲載 ・ {channel.breeds}</p></div>
+            <div className="subscriber"><b>{live?.channels[channel.channelId]?.subscriber || '—'}</b><span>チャンネル登録者</span></div>
+            <p className="channel-total">TOP3 合計 ▶ {formatViews(videos.filter((video) => video.channelId === channel.channelId).reduce((sum, video) => sum + (live?.videos[video.id] ?? video.viewCount), 0))}</p>
             <div className="channel-links"><button onClick={() => { setChannel(channel.name); document.getElementById('videos')?.scrollIntoView({ behavior: 'smooth' }); }}>TOP3を見る</button><a href={channel.channelUrl} target="_blank" rel="noreferrer">YouTube</a>{channel.instagram ? <a className="ig-button" href={channel.instagram} target="_blank" rel="noreferrer">Instagram</a> : <span>Instagram 未登録</span>}</div>
           </article>
         ))}</div>
       </section>
 
       <section className="info-guide" id="guide">
-        <div><p className="eyebrow">VIDEO INFORMATION</p><h2>動画ごとに必要な情報を、<br/>ひと目で。</h2></div>
+        <div><p className="eyebrow">OSHIKATSU POINT</p><h2>推す前に知りたいこと、<br/>ひと目で。</h2></div>
         <div className="guide-grid"><div><b>01</b><h3>犬種・対象年齢</h3><p>うちの子に近い動画か、見る前に判断できます。</p></div><div><b>02</b><h3>要点・テーマ</h3><p>動画でわかることを短く整理しています。</p></div><div><b>03</b><h3>発信元・SNS</h3><p>YouTubeとInstagramへ直接移動できます。</p></div><div><b>04</b><h3>公開日・長さ</h3><p>情報の新しさと視聴時間を確認できます。</p></div></div>
       </section>
 
-      <footer><a className="brand" href="#top"><span className="brand-mark">犬</span><span>犬ちゃんねる</span></a><p>犬の動画と、いい出会いを。</p><span>© 2026 犬ちゃんねる</span></footer>
+      <footer><a className="brand" href="#top"><span className="brand-mark">犬</span><span>犬ちゃんねる</span></a><p>推したい犬と、毎日会える。</p><span>© 2026 犬ちゃんねる</span></footer>
     </main>
   );
 }

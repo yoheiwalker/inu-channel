@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { thumbnailFor, videos, youtubeFor } from '../../data';
+import { LiveVideoViews } from '../../live-youtube';
 
 type Props = { params: Promise<{ id: string }> };
 
@@ -37,7 +38,7 @@ export default async function VideoDetail({ params }: Props) {
             <div className="detail-labels"><span>このチャンネルの人気 第{video.rank}位</span><span>{video.category}</span>{video.tags.map((tag) => <span key={tag}>#{tag}</span>)}</div>
             <h1>{video.title}</h1>
             <p className="detail-channel">発信：<b>{video.channel}</b></p>
-            <div className="detail-stats"><div><span>犬種</span><b>{video.breed}</b></div><div><span>対象年齢</span><b>{video.age}</b></div>{video.dogAge && <div><span>登場する犬</span><b>{video.dogAge}</b></div>}<div><span>動画の長さ</span><b>{video.duration}</b></div><div><span>公開日</span><b>{video.published}</b></div><div><span>再生数</span><b>{video.views}</b></div></div>
+            <div className="detail-stats"><div><span>犬種</span><b>{video.breed}</b></div><div><span>対象年齢</span><b>{video.age}</b></div>{video.dogAge && <div><span>登場する犬</span><b>{video.dogAge}</b></div>}<div><span>動画の長さ</span><b>{video.duration}</b></div><div><span>公開日</span><b>{video.published}</b></div><div><span>現在の再生数</span><b className="live-view"><LiveVideoViews id={video.id} fallback={video.views}/></b></div></div>
             <section className="summary-box"><p className="eyebrow">WATCHED &amp; SUMMARIZED</p><h2>動画の中身を見てまとめました</h2><p>{video.description}</p></section>
             <section className="learn-box"><p className="eyebrow">YOU WILL LEARN</p><h2>この動画でわかること</h2><ol>{video.points.map((point, index) => <li key={point}><span>{String(index + 1).padStart(2, '0')}</span>{point}</li>)}</ol></section>
             {video.note && <aside className="medical-note"><b>見るときの注意</b><p>{video.note}</p></aside>}

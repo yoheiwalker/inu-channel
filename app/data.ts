@@ -1,5 +1,5 @@
 export type Video = {
-  id: string; rank: 1 | 2 | 3; title: string; channel: string; channelUrl: string;
+  id: string; rank: 1 | 2 | 3; title: string; channel: string; channelId: string; channelUrl: string;
   category: string; breed: string; age: string; dogAge?: string; duration: string;
   published: string; views: string; viewCount: number; description: string;
   points: string[]; tags: string[]; instagram?: string; instagramHandle?: string;
@@ -18,15 +18,15 @@ export const categoryInfo = [
   { name: '飼い主さん', icon: '🤎', color: '#6788b8' },
 ];
 
-const qoo = { channel: 'くぅのドッグフード研究室', channelUrl: 'https://www.youtube.com/@qoo-dogfood', category: '獣医師' };
-const shippolab = { channel: 'しっぽLABチャンネル', channelUrl: 'https://www.youtube.com/@sippolab0927', category: '獣医師' };
-const dogcatch = { channel: '犬のしつけチャンネル / 金倉高志', channelUrl: 'https://www.youtube.com/@dogcatch', category: 'しつけ教室' };
-const fufu = { channel: "FUFU家's ゴールデンレトリバーTEN", channelUrl: 'https://www.youtube.com/@fufu_ten_goldenretriever', category: 'ペットフード', instagram: 'https://www.instagram.com/fufu_ten_goldenretriever/', instagramHandle: '@fufu_ten_goldenretriever' };
-const coco = { channel: 'フレンチブルドッグココ', channelUrl: 'https://www.youtube.com/@miroku_coco', category: 'ペットフード', instagram: 'https://www.instagram.com/miroku_coco/', instagramHandle: '@miroku_coco' };
-const kojima = { channel: '株式会社コジマ', channelUrl: 'https://www.youtube.com/@petkojima1', category: 'ペットショップ', instagram: 'https://www.instagram.com/pets.kojima.official/', instagramHandle: '@pets.kojima.official' };
-const palm = { channel: 'DOG salon Palm', channelUrl: 'https://www.youtube.com/@dogpalm7106', category: 'トリミングサロン', instagram: 'https://www.instagram.com/mugitrimming/', instagramHandle: '@mugitrimming', source: 'https://dogsalonpalm.com/' };
-const steve = { channel: '柴犬スティーブ', channelUrl: 'https://www.youtube.com/@shibainuSteve', category: '飼い主さん', instagram: 'https://www.instagram.com/shiba2929/', instagramHandle: '@shiba2929', source: 'https://www.steve-studio.jp/' };
-const ranmaru = { channel: 'SHIBA DOG RANMARU', channelUrl: 'https://www.youtube.com/@ShibainuRanmaru', category: '飼い主さん', source: 'https://shibainuranmaru.com/' };
+const qoo = { channel: 'くぅのドッグフード研究室', channelId: 'UCFliizhw72q9f8J18RSBeCw', channelUrl: 'https://www.youtube.com/@qoo-dogfood', category: '獣医師' };
+const shippolab = { channel: 'しっぽLABチャンネル', channelId: 'UC-PiekgzxHiAi_blVDQN0LQ', channelUrl: 'https://www.youtube.com/@sippolab0927', category: '獣医師' };
+const dogcatch = { channel: '犬のしつけチャンネル / 金倉高志', channelId: 'UC0-IDDl7LvUVUPUTODM0KrA', channelUrl: 'https://www.youtube.com/@dogcatch', category: 'しつけ教室' };
+const fufu = { channel: "FUFU家's ゴールデンレトリバーTEN", channelId: 'UCmTp9wGIzRZJH3-jUkYHJ9g', channelUrl: 'https://www.youtube.com/@fufu_ten_goldenretriever', category: 'ペットフード', instagram: 'https://www.instagram.com/fufu_ten_goldenretriever/', instagramHandle: '@fufu_ten_goldenretriever' };
+const coco = { channel: 'フレンチブルドッグココ', channelId: 'UC8pLL1oT5TzhEDx0Xl_sS1Q', channelUrl: 'https://www.youtube.com/@miroku_coco', category: 'ペットフード', instagram: 'https://www.instagram.com/miroku_coco/', instagramHandle: '@miroku_coco' };
+const kojima = { channel: '株式会社コジマ', channelId: 'UCr4rvtqO2UQLDMxgc16zQ3A', channelUrl: 'https://www.youtube.com/@petkojima1', category: 'ペットショップ', instagram: 'https://www.instagram.com/pets.kojima.official/', instagramHandle: '@pets.kojima.official' };
+const palm = { channel: 'DOG salon Palm', channelId: 'UCkMe4O-jWq-QQlDtnjKVcNA', channelUrl: 'https://www.youtube.com/@dogpalm7106', category: 'トリミングサロン', instagram: 'https://www.instagram.com/mugitrimming/', instagramHandle: '@mugitrimming', source: 'https://dogsalonpalm.com/' };
+const steve = { channel: '柴犬スティーブ', channelId: 'UCCUDI6EtG-Y0w8Nc-hTpsYg', channelUrl: 'https://www.youtube.com/@shibainuSteve', category: '飼い主さん', instagram: 'https://www.instagram.com/shiba2929/', instagramHandle: '@shiba2929', source: 'https://www.steve-studio.jp/' };
+const ranmaru = { channel: 'SHIBA DOG RANMARU', channelId: 'UCgjULi89KwwEFcYHvsDRyXw', channelUrl: 'https://www.youtube.com/@ShibainuRanmaru', category: '飼い主さん', source: 'https://shibainuranmaru.com/' };
 
 export const videos: Video[] = [
   { ...qoo, id: 'DlWEK6YBXf0', rank: 1, title: '【一撃で】ダメなドッグフードを見抜く方法', breed: '全犬種', age: '全年齢', duration: '17:22', published: '2023.01.26', views: '97.5万回', viewCount: 975333,
@@ -127,7 +127,7 @@ export const channelSummaries = Array.from(new Set(videos.map((video) => video.c
   const entries = videos.filter((video) => video.channel === channel).sort((a, b) => a.rank - b.rank);
   const first = entries[0];
   return {
-    name: channel, category: first.category, thumbnail: thumbnailFor(first.id), videos: entries.length,
+    name: channel, channelId: first.channelId, category: first.category, thumbnail: thumbnailFor(first.id), videos: entries.length,
     totalViews: entries.reduce((sum, video) => sum + video.viewCount, 0),
     breeds: Array.from(new Set(entries.map((video) => video.breed))).join('・'),
     channelUrl: first.channelUrl, instagram: first.instagram, instagramHandle: first.instagramHandle,
