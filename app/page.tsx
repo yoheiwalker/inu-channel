@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { categoryInfo, channelSummaries, rankingDate, thumbnailFor, videos, youtubeFor } from './data';
+import { allChannels, categoryInfo, channelSummaries, extraOwnerChannels, rankingDate, thumbnailFor, videos, youtubeFor } from './data';
 
 const breedOptions = ['すべて', ...Array.from(new Set(videos.map((video) => video.breed)))];
 const ageOptions = ['すべて', '子犬', '成犬', 'シニア', '全年齢'];
@@ -28,19 +28,43 @@ export default function Home() {
   const [age, setAge] = useState('すべて');
   const [channel, setChannel] = useState('すべて');
   const [sort, setSort] = useState('チャンネル別TOP順');
+  const [directoryQuery, setDirectoryQuery] = useState('');
+  const [directoryMode, setDirectoryMode] = useState('飼い主さん');
 
   useEffect(() => {
-    const load = () => fetch('/api/youtube').then((response) => response.ok ? response.json() : Promise.reject()).then(setLive).catch(() => undefined);
+    const load = () => Promise.all([
+      fetch('/api/youtube').then((response) => response.ok ? response.json() as Promise<LiveData> : Promise.reject()).catch(() => null),
+      fetch('/api/owners').then((response) => response.ok ? response.json() as Promise<LiveData> : Promise.reject()).catch(() => null),
+    ]).then(([primary, owners]) => {
+      if (!primary && !owners) return;
+      setLive({
+        updatedAt: primary?.updatedAt || owners?.updatedAt || new Date().toISOString(),
+        refreshHours: 6,
+        channels: { ...(primary?.channels || {}), ...(owners?.channels || {}) },
+        videos: primary?.videos || {},
+      });
+    });
     load();
     const timer = window.setInterval(load, 30 * 60 * 1000);
     return () => window.clearInterval(timer);
   }, []);
 
   const liveVideos = useMemo(() => videos.map((video) => ({ ...video, liveViewCount: live?.videos[video.id] ?? video.viewCount })), [live]);
-  const latestVideos = useMemo(() => channelSummaries.flatMap((item) => {
+  const latestVideos = useMemo(() => allChannels.flatMap((item) => {
     const latest = live?.channels[item.channelId]?.latest;
     return latest ? [{ ...latest, channel: item.name }] : [];
-  }).slice(0, 6), [live]);
+  }).sort((a, b) => b.published.localeCompare(a.published)).slice(0, 9), [live]);
+
+  const directoryChannels = useMemo(() => {
+    const needle = directoryQuery.trim().toLowerCase();
+    return allChannels.filter((item) => {
+      const matchesMode = directoryMode === 'すべて'
+        || (directoryMode === '飼い主さん' && item.category === '飼い主さん')
+        || (directoryMode === 'TOP3まとめあり' && item.videos > 0);
+      const haystack = `${item.name} ${item.breeds} ${item.category} ${item.description || ''}`.toLowerCase();
+      return matchesMode && (!needle || haystack.includes(needle));
+    });
+  }, [directoryMode, directoryQuery]);
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -80,7 +104,7 @@ export default function Home() {
         <div className="idol-stage" aria-label="注目の犬動画">
           <div className="idol-orbit"/><span className="idol-crown">♛</span><span className="idol-bubble">今週のセンター！</span>
           {videos.filter((video) => video.rank === 1).slice(0, 3).map((video, index) => <a className={`idol-card ${['one','two','three'][index]}`} href={`/videos/${video.id}`} key={video.id}><img src={thumbnailFor(video.id)} alt={video.title}/><strong>{video.channel}</strong><small>人気 第1位 ♡</small></a>)}
-          <div className="hero-stats"><div><b>{videos.length}</b><span>推し動画</span></div><div><b>{channelSummaries.length}</b><span>犬ドル</span></div><div><b>6</b><span>部門</span></div></div>
+          <div className="hero-stats"><div><b>{videos.length}</b><span>推し動画</span></div><div><b>{allChannels.length}</b><span>犬ドル</span></div><div><b>6</b><span>部門</span></div></div>
         </div>
       </section>
 
@@ -124,14 +148,19 @@ export default function Home() {
       </section>
 
       <section className="channel-section" id="channels">
-        <div className="finder-head"><div><p className="eyebrow">DOG IDOL DIRECTORY</p><h2>犬ドル名鑑 ♡</h2></div><p>登録者数・チャンネル画像・最新動画をYouTubeの公開情報から自動取得します。</p></div>
-        <div className="channel-list">{channelSummaries.map((channel) => (
+        <div className="finder-head"><div><p className="eyebrow">DOG OWNER YOUTUBER DIRECTORY</p><h2>飼い主YouTuber名鑑 ♡</h2></div><p>飼い主さん系を新たに{extraOwnerChannels.length}組追加。登録者数・チャンネル画像・最新動画をYouTubeの公開情報から自動取得します。</p></div>
+        <div className="directory-tools">
+          <label className="search-box"><span>⌕</span><input value={directoryQuery} onChange={(event) => setDirectoryQuery(event.target.value)} placeholder="犬種・チャンネル名で探す" /><button onClick={() => setDirectoryQuery('')} aria-label="検索をクリア">×</button></label>
+          <div className="directory-tabs">{['飼い主さん', 'すべて', 'TOP3まとめあり'].map((item) => <button key={item} className={directoryMode === item ? 'selected' : ''} onClick={() => setDirectoryMode(item)}>{item}</button>)}</div>
+          <p><b>{directoryChannels.length}</b> チャンネル表示中</p>
+        </div>
+        <div className="channel-list">{directoryChannels.map((channel) => (
           <article className="channel-row" key={channel.name}>
             <img src={live?.channels[channel.channelId]?.avatar || channel.thumbnail} alt={`${channel.name}のチャンネル画像`} loading="lazy" />
-            <div className="channel-row-copy"><span>{channel.category}</span><h3>{channel.name}</h3><p>人気TOP3掲載 ・ {channel.breeds}</p></div>
+            <div className="channel-row-copy"><span>{channel.category}</span><h3>{channel.name}</h3><p>{channel.videos ? '人気TOP3掲載' : '最新動画を自動取得'} ・ {channel.breeds}</p>{channel.description && <small>{channel.description}</small>}</div>
             <div className="subscriber"><b>{live?.channels[channel.channelId]?.subscriber || '—'}</b><span>チャンネル登録者</span></div>
-            <p className="channel-total">TOP3 合計 ▶ {formatViews(videos.filter((video) => video.channelId === channel.channelId).reduce((sum, video) => sum + (live?.videos[video.id] ?? video.viewCount), 0))}</p>
-            <div className="channel-links"><button onClick={() => { setChannel(channel.name); document.getElementById('videos')?.scrollIntoView({ behavior: 'smooth' }); }}>TOP3を見る</button><a href={channel.channelUrl} target="_blank" rel="noreferrer">YouTube</a>{channel.instagram ? <a className="ig-button" href={channel.instagram} target="_blank" rel="noreferrer">Instagram</a> : <span>Instagram 未登録</span>}</div>
+            {channel.videos ? <p className="channel-total">TOP3 合計 ▶ {formatViews(videos.filter((video) => video.channelId === channel.channelId).reduce((sum, video) => sum + (live?.videos[video.id] ?? video.viewCount), 0))}</p> : <p className="channel-total latest-title">最新：{live?.channels[channel.channelId]?.latest?.title || '情報を取得中…'}</p>}
+            <div className="channel-links">{channel.videos && <button onClick={() => { setChannel(channel.name); document.getElementById('videos')?.scrollIntoView({ behavior: 'smooth' }); }}>TOP3を見る</button>}<a href={channel.channelUrl} target="_blank" rel="noreferrer">YouTube</a>{channel.instagram && <a className="ig-button" href={channel.instagram} target="_blank" rel="noreferrer">Instagram</a>}</div>
           </article>
         ))}</div>
       </section>

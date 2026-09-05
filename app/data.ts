@@ -123,7 +123,21 @@ export const videos: Video[] = [
 export const thumbnailFor = (id: string) => `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 export const youtubeFor = (id: string) => `https://www.youtube.com/watch?v=${id}`;
 
-export const channelSummaries = Array.from(new Set(videos.map((video) => video.channel))).map((channel) => {
+export type ChannelSummary = {
+  name: string;
+  channelId: string;
+  category: string;
+  thumbnail: string;
+  videos: number;
+  totalViews: number;
+  breeds: string;
+  channelUrl: string;
+  instagram?: string;
+  instagramHandle?: string;
+  description?: string;
+};
+
+export const channelSummaries: ChannelSummary[] = Array.from(new Set(videos.map((video) => video.channel))).map((channel) => {
   const entries = videos.filter((video) => video.channel === channel).sort((a, b) => a.rank - b.rank);
   const first = entries[0];
   return {
@@ -133,3 +147,50 @@ export const channelSummaries = Array.from(new Set(videos.map((video) => video.c
     channelUrl: first.channelUrl, instagram: first.instagram, instagramHandle: first.instagramHandle,
   };
 });
+
+const ownerChannel = (
+  name: string,
+  channelId: string,
+  breeds: string,
+  representativeVideoId: string,
+  description: string,
+): ChannelSummary => ({
+  name,
+  channelId,
+  category: '飼い主さん',
+  thumbnail: thumbnailFor(representativeVideoId),
+  videos: 0,
+  totalViews: 0,
+  breeds,
+  channelUrl: `https://www.youtube.com/channel/${channelId}`,
+  description,
+});
+
+export const extraOwnerChannels: ChannelSummary[] = [
+  ownerChannel('Toy Poodle Kotaro & Mio', 'UCRZbfmn4b-VCR3jipSEZCFA', 'トイプードル', 'npQpYNls_BI', '虎太郎とみくる、家族の毎日を追える暮らし系チャンネル。'),
+  ownerChannel('Glee channel', 'UC1_DrdX2goHuPevGTpjwpyw', 'トイプードル', 'dw5ErBh7OKw', 'トイプードルのグリィと家族のおでかけ・日常記録。'),
+  ownerChannel('Mame shiba UNI＆Golden retriever OKARA', 'UCyCnRz_3w--uy44zFv1dThg', '豆柴・ゴールデンレトリバー', 'ulgR1OH9h0g', '豆柴うにとゴールデンレトリバーおからのにぎやかな家族時間。'),
+  ownerChannel('ポメくんの日常', 'UCEsl6Anp_CZXX9OEayrlbaA', 'ポメラニアン', 'KfHoViC76gc', 'ポメラニアンと家族の距離の近い日常を楽しめるチャンネル。'),
+  ownerChannel('Shiba Inu Ringoro', 'UCQwug8A0MnUy5sILT1KMEIg', '柴犬', 'kDnBPAnkZpU', '柴犬りんご郎と子どもたちが一緒に育つ家族の記録。'),
+  ownerChannel('サモエドりんたろう', 'UCVJiAbpmTTh2aYeBtMcry5g', 'サモエド', 'INFBIvcmbvQ', '白くて大きなサモエドたちとの暮らしと成長を発信。'),
+  ownerChannel('犬と猫の親バカ日記', 'UCDrLRJgdu05HtV8JLQVhx3w', 'シベリアンハスキー・トイプードル', 'U7-Ds3i71xU', '犬と猫が一緒に暮らす多頭飼い家族の日常チャンネル。'),
+  ownerChannel('Toby & Pi Family', 'UCPByqQHYwQ-EfJ5IQDUlE0A', 'ゴールデンレトリバー・コーギー', 'OoMT73ElEuM', '大型犬を中心に、家族で向き合う日々を丁寧に残すチャンネル。'),
+  ownerChannel('ジョイ家', 'UC9PDC4xeAqgoq1mEoS53Pig', 'ゴールデンレトリバー', 'TPUOtsJvRvY', 'ゴールデンレトリバーのジョイと家族の旅や暮らしの記録。'),
+  ownerChannel('コーギー犬ノエさん / NOEL and MONA', 'UCa-a9qEbO70xr0MGFhrFABw', 'ウェルシュ・コーギー', 'X2EUwjB-fH8', 'ノエルとモナの表情豊かな日常を追えるコーギーチャンネル。'),
+  ownerChannel('甲斐犬一休と猫のしずくと僕のチャンネル', 'UCuxXyuKhxoYFTiNmnOVVBXA', '甲斐犬', 'R44VycpxuqU', '甲斐犬一休と猫のしずく、家族が暮らす毎日を発信。'),
+  ownerChannel('秋田犬げんき', 'UC0e87WXu_SJhrc8tb08qyaQ', '秋田犬', 'WTI9rdS35_M', '秋田犬たちの素朴で表情豊かな暮らしを長く記録。'),
+  ownerChannel('ボーダーコリーのライト【ふうらいTV】', 'UCdlk_jryx3sywQTf_x8BD3A', 'ボーダーコリー・ゴールデンレトリバー', 'khBr9DRK3pI', 'ボーダーコリーとゴールデンレトリバー中心の多頭飼い生活。'),
+  ownerChannel('しばわんこ生活', 'UCVrQEJIhAw8OfFeBCVlRHfg', '柴犬', 'kmEzuBfZi_g', '柴犬と家族、多世代で過ごすやさしい日常を発信。'),
+  ownerChannel('豆柴すみすみ', 'UC93O_mvkSvPHQDqPMJbl9Aw', '豆柴', 'TxbOwBbC3HQ', '豆柴すみすみのおでかけや家族との日常を楽しめるチャンネル。'),
+  ownerChannel('豆柴福チャンネル', 'UCTEjtNZp6ihAkglsr-1BfgQ', '豆柴', 'INyNS0oLqlk', '豆柴の福と家族の何気ない毎日を届ける暮らし系チャンネル。'),
+  ownerChannel('KOMUGI', 'UCtq-YnnMcvIB3MFF8zfl1-Q', '柴犬', 'SskPqnZYgBY', '柴犬こむぎと飼い主のおでかけや賑やかな日常。'),
+  ownerChannel('Life with Malamutes', 'UCj9pk54KCzfvTs9gnMKJYSg', 'アラスカン・マラミュート', '80AcoFidWeE', '大きなアラスカン・マラミュートたちと暮らす家族の記録。'),
+  ownerChannel('COLE&', 'UCsmiZGkqI-c42e0nSSmNC_Q', 'ゴールデンレトリバー・大型犬', 'TpHbvQWYcTM', '大型犬たちと暮らす家族のリアルな毎日を発信。'),
+  ownerChannel('古民家DIYと犬', 'UCMS3gkXjGRIo-Seiqp7twZg', '犬・多頭飼い', 'fT6gkWGb78s', '犬たちとの田舎暮らしと古民家DIYを一緒に楽しめるチャンネル。'),
+  ownerChannel('リリガル Lillie and Garcello', 'UC8GYDNUBerZnldr8Sj01ngQ', 'ボーダーコリー・オーストラリアンシェパード', 'RmDp92-JbgE', '会話ボタンや遊びを通して賢い犬たちとの暮らしを発信。'),
+  ownerChannel('トイプードルみみと暮らす', 'UCZ9LnaH2Fnzr9VwA854EJJg', 'トイプードル', 'nvSsCAUZP3Y', 'トイプードルのみみと飼い主の等身大の暮らしと健康記録。'),
+  ownerChannel('ポメラニアンのマヨちゃんねる', 'UCWmjMEjq-hdGTNbk-q4l_ng', 'ポメラニアン', 'PMxonKvXt0s', 'ポメラニアンのマヨとの手作りごはんや日常を発信。'),
+  ownerChannel('Yuzuchoco@Life', 'UCTW2Mk6PT7Xiat1tVu-AiNA', 'ミニチュアダックスフンド', 'oP8Hj_BJuEs', 'ミニチュアダックスたちの甘えん坊な日常を届けるチャンネル。'),
+];
+
+export const allChannels: ChannelSummary[] = [...channelSummaries, ...extraOwnerChannels];
