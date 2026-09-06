@@ -7,6 +7,7 @@ const breedOptions = ['すべて', ...Array.from(new Set(videos.map((video) => v
 const ageOptions = ['すべて', '子犬', '成犬', 'シニア', '全年齢'];
 const channelOptions = ['すべて', ...channelSummaries.map((channel) => channel.name)];
 const directoryBreedOptions = ['すべて', ...Array.from(new Set([...allChannels.map((item) => item.breeds), ...socialCreators.map((item) => item.breeds)].flatMap((value) => value.split('・')))).sort((a, b) => a.localeCompare(b, 'ja'))];
+const featuredDirectoryBreeds = ['柴犬', 'チワワ', 'トイプードル', 'ポメラニアン', 'ミニチュアダックスフンド', 'ウェルシュ・コーギー', 'ゴールデンレトリバー', 'ラブラドールレトリバー', 'シベリアンハスキー', 'サモエド', 'パグ', 'フレンチブルドッグ', 'シーズー'];
 
 type LiveData = {
   updatedAt: string;
@@ -91,6 +92,13 @@ export default function Home() {
         && (!needle || haystack.includes(needle));
     }).sort((a, b) => b.followers - a.followers);
   }, [directoryPlatform, directoryQuery, directoryBreed]);
+
+  const featuredBreedCounts = useMemo(() => featuredDirectoryBreeds.map((item) => ({
+    name: item,
+    count: directoryPlatform === 'YouTube'
+      ? allChannels.filter((channelItem) => channelItem.category === '飼い主さん' && channelItem.breeds.includes(item)).length
+      : socialCreators.filter((creator) => creator.platform === directoryPlatform && creator.breeds.includes(item)).length,
+  })).filter((item) => item.count > 0), [directoryPlatform]);
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -200,6 +208,7 @@ export default function Home() {
           {directoryPlatform === 'YouTube' ? <div className="directory-tabs">{['飼い主さん', 'すべて', 'TOP3まとめあり'].map((item) => <button key={item} className={directoryMode === item ? 'selected' : ''} onClick={() => setDirectoryMode(item)}>{item}</button>)}</div> : <span className="verified-filter">✓ 1,000人以上のみ</span>}
           <p><b>{directoryPlatform === 'YouTube' ? directoryChannels.length : directorySocialCreators.length}</b> 件表示中</p>
         </div>
+        <div className="breed-shortcuts" aria-label="人気犬種から探す"><span>犬種から推しを探す</span>{featuredBreedCounts.map((item) => <button key={item.name} className={directoryBreed === item.name ? 'selected' : ''} onClick={() => setDirectoryBreed(directoryBreed === item.name ? 'すべて' : item.name)}>{item.name}<small>{item.count}</small></button>)}</div>
         {directoryPlatform === 'YouTube' ? <div className="channel-list">{directoryChannels.map((channel) => (
           <article className="channel-row" key={channel.name}>
             <img src={live?.channels[channel.channelId]?.avatar || channel.thumbnail} alt={`${channel.name}のチャンネル画像`} loading="lazy" />
