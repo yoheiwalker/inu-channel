@@ -1,4 +1,4 @@
-import { channelSummaries, videos } from '../../data';
+import { channelSummaries } from '../../data';
 
 export const runtime = 'edge';
 
@@ -80,36 +80,16 @@ async function fetchChannel(channel: typeof channelSummaries[number]) {
   }
 }
 
-async function fetchVideoView(id: string) {
-  try {
-    const response = await fetch(`https://www.youtube.com/watch?v=${id}`, {
-      headers: { 'user-agent': 'Mozilla/5.0' },
-    });
-    if (!response.ok) return null;
-    const html = await response.text();
-    const count = Number(html.match(/"viewCount":"([0-9]+)"/)?.[1]);
-    return Number.isFinite(count) ? [id, count] as const : null;
-  } catch {
-    return null;
-  }
-}
-
 export async function GET() {
   const settled = await Promise.allSettled(channelSummaries.map(fetchChannel));
   const channels = settled.flatMap((result) => result.status === 'fulfilled' ? [result.value] : []);
-  const viewEntries: Array<readonly [string, number] | null> = [];
-  for (let index = 0; index < videos.length; index += 8) {
-    const batch = videos.slice(index, index + 8);
-    viewEntries.push(...await Promise.all(batch.map((video) => fetchVideoView(video.id))));
-  }
-  const validViewEntries = viewEntries.filter((entry): entry is readonly [string, number] => Boolean(entry));
-  const complete = channels.length === channelSummaries.length && validViewEntries.length === videos.length;
+  const complete = channels.length === channelSummaries.length && channels.every((channel) => channel.avatar && channel.latest);
   return Response.json({
     updatedAt: new Date().toISOString(),
     refreshHours: 6,
     complete,
     channels: Object.fromEntries(channels.map((channel) => [channel.channelId, channel])),
-    videos: Object.fromEntries(validViewEntries),
+    videos: {},
   }, {
     headers: {
       'cache-control': complete ? 'public, s-maxage=21600, stale-while-revalidate=86400' : 'no-store',

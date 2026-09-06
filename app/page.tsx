@@ -45,10 +45,7 @@ export default function Home() {
     }));
     const fetchJson = (url: string) => fetch(url).then((response) => response.ok ? response.json() as Promise<LiveData> : Promise.reject()).catch(() => null);
     const load = async () => {
-      fetchJson('/api/youtube?ranking=3').then(async (primary) => {
-        if (primary && primary.complete === false) primary = await fetchJson(`/api/youtube?ranking=3&retry=${Date.now()}`);
-        if (primary) mergeLive(primary);
-      });
+      fetchJson('/api/youtube?ranking=4').then((primary) => { if (primary) mergeLive(primary); });
       for (let group = 0; group < ownerApiGroupCount && !cancelled; group += 1) {
         let owners = await fetchJson(`/api/owners?group=${group}&catalog=2`);
         if (owners && owners.complete === false) owners = await fetchJson(`/api/owners?group=${group}&catalog=2&retry=${Date.now()}`);
@@ -134,7 +131,7 @@ export default function Home() {
 
       <section className="ranking-section" id="ranking">
         <div className="ranking-inner">
-          <div className="finder-head ranking-head"><div><p className="eyebrow">MOST VIEWED DOG VIDEOS</p><h2>再生回数ランキング ♡</h2></div><p>{rankingTab === '総合ランキング' ? `内容確認済みの人気動画${videos.length}本を、現在の再生回数で順位付け。` : '名鑑に掲載中の各チャンネルから、直近投稿の再生回数を比較。'}6時間ごとに更新します。</p></div>
+          <div className="finder-head ranking-head"><div><p className="eyebrow">MOST VIEWED DOG VIDEOS</p><h2>再生回数ランキング ♡</h2></div><p>{rankingTab === '総合ランキング' ? `内容確認済みの人気動画${videos.length}本を、${rankingDate}調査時点の再生回数で順位付け。` : '名鑑に掲載中の各チャンネルから、直近投稿の再生回数を比較。6時間ごとに更新します。'}</p></div>
           <div className="ranking-tabs">{(['総合ランキング', '最新動画ランキング'] as const).map((item) => <button className={rankingTab === item ? 'selected' : ''} onClick={() => setRankingTab(item)} key={item}>{item}</button>)}</div>
           <div className="ranking-list">{rankingVideos.map((video, index) => (
             <a className={`ranking-row ${index < 3 ? `ranking-winner winner-${index + 1}` : ''}`} href={video.href} target={rankingTab === '最新動画ランキング' ? '_blank' : undefined} rel={rankingTab === '最新動画ランキング' ? 'noreferrer' : undefined} key={`${rankingTab}-${video.id}`}>
@@ -144,12 +141,12 @@ export default function Home() {
               <div className="ranking-views"><span>▶</span><b>{formatViews(video.rankingViews)}</b><small>{rankingTab === '最新動画ランキング' ? '最新動画' : '総再生回数'}</small></div>
             </a>
           ))}</div>
-          <p className="ranking-note">公開されているYouTube情報をもとに集計 ・ {live ? `最終取得 ${formatDate(live.updatedAt)}` : '最新情報を取得中…'}</p>
+          <p className="ranking-note">公開されているYouTube情報をもとに集計 ・ {rankingTab === '総合ランキング' ? `集計日 ${rankingDate}` : live ? `最終取得 ${formatDate(live.updatedAt)}` : '最新情報を取得中…'}</p>
         </div>
       </section>
 
       <section className="finder" id="videos">
-        <div className="finder-head"><div><p className="eyebrow">OSHIMEN MOVIE FINDER</p><h2>推し動画を探そう ♡</h2></div><p>各チャンネルの人気1〜3位を収録。{rankingDate}の順位を基準に、現在の再生数は自動更新しています。</p></div>
+        <div className="finder-head"><div><p className="eyebrow">OSHIMEN MOVIE FINDER</p><h2>推し動画を探そう ♡</h2></div><p>各チャンネルの人気1〜3位を収録。順位と再生数は{rankingDate}の調査結果を基準にしています。</p></div>
         <div className="search-panel">
           <label className="search-box wide"><span>⌕</span><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="例：柴犬、歯磨き、子犬のしつけ" /><button onClick={() => setQuery('')} aria-label="検索をクリア">×</button></label>
           <div className="select-row">
