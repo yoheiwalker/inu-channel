@@ -74,26 +74,20 @@ async function fetchChannel(channel: typeof channelSummaries[number]) {
       ?? headerText.match(/([0-9.,]+[MK]?) subscribers/i)?.[1]
       ?? null;
     const avatar = html.match(/<meta property="og:image" content="([^"]+)"/)?.[1]?.replaceAll('&amp;', '&') ?? null;
-    const apiKey = html.match(/"INNERTUBE_API_KEY":"([^"]+)"/)?.[1] ?? null;
-    const clientVersion = html.match(/"INNERTUBE_CLIENT_VERSION":"([^"]+)"/)?.[1] ?? null;
-    return { name: channel.name, channelId: channel.channelId, subscriber, avatar, latest: parseLatest(xml), apiKey, clientVersion };
+    return { name: channel.name, channelId: channel.channelId, subscriber, avatar, latest: parseLatest(xml) };
   } finally {
     clearTimeout(timer);
   }
 }
 
-async function fetchVideoView(id: string, apiKey: string, clientVersion: string) {
+async function fetchVideoView(id: string) {
   try {
-    const response = await fetch(`https://www.youtube.com/youtubei/v1/player?key=${apiKey}`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json', 'user-agent': 'Mozilla/5.0' },
-      body: JSON.stringify({
-        context: { client: { clientName: 'WEB', clientVersion, hl: 'ja', gl: 'JP' } },
-        videoId: id,
-      }),
+    const response = await fetch(`https://www.youtube.com/watch?v=${id}`, {
+      headers: { 'user-agent': 'Mozilla/5.0' },
     });
-    const data = await response.json() as { videoDetails?: { viewCount?: string } };
-    const count = Number(data.videoDetails?.viewCount);
+    if (!response.ok) return null;
+    const html = await response.text();
+    const count = Number(html.match(/"viewCount":"([0-9]+)"/)?.[1]);
     return Number.isFinite(count) ? [id, count] as const : null;
   } catch {
     return null;
@@ -103,22 +97,22 @@ async function fetchVideoView(id: string, apiKey: string, clientVersion: string)
 export async function GET() {
   const settled = await Promise.allSettled(channelSummaries.map(fetchChannel));
   const channels = settled.flatMap((result) => result.status === 'fulfilled' ? [result.value] : []);
-  const client = channels.find((channel) => channel.apiKey && channel.clientVersion);
   const viewEntries: Array<readonly [string, number] | null> = [];
-  if (client?.apiKey && client.clientVersion) {
-    for (let index = 0; index < videos.length; index += 8) {
-      const batch = videos.slice(index, index + 8);
-      viewEntries.push(...await Promise.all(batch.map((video) => fetchVideoView(video.id, client.apiKey!, client.clientVersion!))));
-    }
+  for (let index = 0; index < videos.length; index += 8) {
+    const batch = videos.slice(index, index + 8);
+    viewEntries.push(...await Promise.all(batch.map((video) => fetchVideoView(video.id))));
   }
+  const validViewEntries = viewEntries.filter((entry): entry is readonly [string, number] => Boolean(entry));
+  const complete = channels.length === channelSummaries.length && validViewEntries.length === videos.length;
   return Response.json({
     updatedAt: new Date().toISOString(),
     refreshHours: 6,
-    channels: Object.fromEntries(channels.map(({ apiKey: _, clientVersion: __, ...channel }) => [channel.channelId, channel])),
-    videos: Object.fromEntries(viewEntries.filter((entry): entry is readonly [string, number] => Boolean(entry))),
+    complete,
+    channels: Object.fromEntries(channels.map((channel) => [channel.channelId, channel])),
+    videos: Object.fromEntries(validViewEntries),
   }, {
     headers: {
-      'cache-control': 'public, s-maxage=21600, stale-while-revalidate=86400',
+      'cache-control': complete ? 'public, s-maxage=21600, stale-while-revalidate=86400' : 'no-store',
     },
   });
 }

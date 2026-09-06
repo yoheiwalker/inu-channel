@@ -45,7 +45,10 @@ export default function Home() {
     }));
     const fetchJson = (url: string) => fetch(url).then((response) => response.ok ? response.json() as Promise<LiveData> : Promise.reject()).catch(() => null);
     const load = async () => {
-      fetchJson('/api/youtube').then((primary) => { if (primary) mergeLive(primary); });
+      fetchJson('/api/youtube?ranking=2').then(async (primary) => {
+        if (primary && primary.complete === false) primary = await fetchJson(`/api/youtube?ranking=2&retry=${Date.now()}`);
+        if (primary) mergeLive(primary);
+      });
       for (let group = 0; group < ownerApiGroupCount && !cancelled; group += 1) {
         let owners = await fetchJson(`/api/owners?group=${group}&catalog=2`);
         if (owners && owners.complete === false) owners = await fetchJson(`/api/owners?group=${group}&catalog=2&retry=${Date.now()}`);
