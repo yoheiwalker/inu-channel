@@ -1,11 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { allChannels, categoryInfo, channelSummaries, extraOwnerChannels, rankingDate, thumbnailFor, videos, youtubeFor } from './data';
+import { allChannels, categoryInfo, channelSummaries, extraOwnerChannels, ownerApiGroupCount, rankingDate, thumbnailFor, videos, youtubeFor } from './data';
 
 const breedOptions = ['すべて', ...Array.from(new Set(videos.map((video) => video.breed)))];
 const ageOptions = ['すべて', '子犬', '成犬', 'シニア', '全年齢'];
 const channelOptions = ['すべて', ...channelSummaries.map((channel) => channel.name)];
+const directoryBreedOptions = ['すべて', ...Array.from(new Set(allChannels.flatMap((item) => item.breeds.split('・')))).sort((a, b) => a.localeCompare(b, 'ja'))];
 
 type LiveData = {
   updatedAt: string;
@@ -30,17 +31,19 @@ export default function Home() {
   const [sort, setSort] = useState('チャンネル別TOP順');
   const [directoryQuery, setDirectoryQuery] = useState('');
   const [directoryMode, setDirectoryMode] = useState('飼い主さん');
+  const [directoryBreed, setDirectoryBreed] = useState('すべて');
 
   useEffect(() => {
     const load = () => Promise.all([
       fetch('/api/youtube').then((response) => response.ok ? response.json() as Promise<LiveData> : Promise.reject()).catch(() => null),
-      fetch('/api/owners').then((response) => response.ok ? response.json() as Promise<LiveData> : Promise.reject()).catch(() => null),
-    ]).then(([primary, owners]) => {
-      if (!primary && !owners) return;
+      ...Array.from({ length: ownerApiGroupCount }, (_, group) => fetch(`/api/owners?group=${group}`).then((response) => response.ok ? response.json() as Promise<LiveData> : Promise.reject()).catch(() => null)),
+    ]).then(([primary, ...ownerGroups]) => {
+      const availableOwnerGroups = ownerGroups.filter((item): item is LiveData => Boolean(item));
+      if (!primary && !availableOwnerGroups.length) return;
       setLive({
-        updatedAt: primary?.updatedAt || owners?.updatedAt || new Date().toISOString(),
+        updatedAt: primary?.updatedAt || availableOwnerGroups[0]?.updatedAt || new Date().toISOString(),
         refreshHours: 6,
-        channels: { ...(primary?.channels || {}), ...(owners?.channels || {}) },
+        channels: Object.assign({}, primary?.channels || {}, ...availableOwnerGroups.map((item) => item.channels)),
         videos: primary?.videos || {},
       });
     });
@@ -62,9 +65,10 @@ export default function Home() {
         || (directoryMode === '飼い主さん' && item.category === '飼い主さん')
         || (directoryMode === 'TOP3まとめあり' && item.videos > 0);
       const haystack = `${item.name} ${item.breeds} ${item.category} ${item.description || ''}`.toLowerCase();
-      return matchesMode && (!needle || haystack.includes(needle));
+      const matchesBreed = directoryBreed === 'すべて' || item.breeds.includes(directoryBreed);
+      return matchesMode && matchesBreed && (!needle || haystack.includes(needle));
     });
-  }, [directoryMode, directoryQuery]);
+  }, [directoryMode, directoryQuery, directoryBreed]);
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -148,9 +152,10 @@ export default function Home() {
       </section>
 
       <section className="channel-section" id="channels">
-        <div className="finder-head"><div><p className="eyebrow">DOG OWNER YOUTUBER DIRECTORY</p><h2>飼い主YouTuber名鑑 ♡</h2></div><p>飼い主さん系を新たに{extraOwnerChannels.length}組追加。登録者数・チャンネル画像・最新動画をYouTubeの公開情報から自動取得します。</p></div>
+        <div className="finder-head"><div><p className="eyebrow">DOG OWNER YOUTUBER DIRECTORY</p><h2>飼い主YouTuber名鑑 ♡</h2></div><p>犬種別に探した飼い主さん系{extraOwnerChannels.length + 2}組を収録。登録者数・チャンネル画像・最新動画をYouTubeの公開情報から自動取得します。</p></div>
         <div className="directory-tools">
           <label className="search-box"><span>⌕</span><input value={directoryQuery} onChange={(event) => setDirectoryQuery(event.target.value)} placeholder="犬種・チャンネル名で探す" /><button onClick={() => setDirectoryQuery('')} aria-label="検索をクリア">×</button></label>
+          <label className="directory-breed"><span>犬種</span><select value={directoryBreed} onChange={(event) => setDirectoryBreed(event.target.value)}>{directoryBreedOptions.map((item) => <option key={item}>{item}</option>)}</select></label>
           <div className="directory-tabs">{['飼い主さん', 'すべて', 'TOP3まとめあり'].map((item) => <button key={item} className={directoryMode === item ? 'selected' : ''} onClick={() => setDirectoryMode(item)}>{item}</button>)}</div>
           <p><b>{directoryChannels.length}</b> チャンネル表示中</p>
         </div>

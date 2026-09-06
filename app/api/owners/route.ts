@@ -1,4 +1,4 @@
-import { extraOwnerChannels } from '../../data';
+import { extraOwnerChannels, ownerApiGroupCount, ownerApiGroupSize } from '../../data';
 
 export const runtime = 'edge';
 
@@ -78,12 +78,17 @@ async function fetchChannel(channel: typeof extraOwnerChannels[number]) {
   }
 }
 
-export async function GET() {
-  const settled = await Promise.allSettled(extraOwnerChannels.map(fetchChannel));
+export async function GET(request: Request) {
+  const requestedGroup = Number(new URL(request.url).searchParams.get('group') || 0);
+  const group = Number.isInteger(requestedGroup) && requestedGroup >= 0 && requestedGroup < ownerApiGroupCount ? requestedGroup : 0;
+  const selectedChannels = extraOwnerChannels.slice(group * ownerApiGroupSize, (group + 1) * ownerApiGroupSize);
+  const settled = await Promise.allSettled(selectedChannels.map(fetchChannel));
   const channels = settled.flatMap((result) => result.status === 'fulfilled' ? [result.value] : []);
   return Response.json({
     updatedAt: new Date().toISOString(),
     refreshHours: 6,
+    group,
+    groupCount: ownerApiGroupCount,
     channels: Object.fromEntries(channels.map((channel) => [channel.channelId, channel])),
     videos: {},
   }, {
