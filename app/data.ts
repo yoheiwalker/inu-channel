@@ -278,7 +278,7 @@ export const allChannels: ChannelSummary[] = [...channelSummaries, ...extraOwner
 export const ownerApiGroupSize = 16;
 export const ownerApiGroupCount = Math.ceil(extraOwnerChannels.length / ownerApiGroupSize);
 
-export const socialCreators: SocialCreator[] = [
+export const socialCreators: SocialCreator[] = ([
   { name: '柴犬まる', handle: '@marutaro', platform: 'Instagram', url: 'https://www.instagram.com/marutaro/', breeds: '柴犬', followers: 2000000, checkedAt: '2026.09.06', description: '柴犬まるの表情豊かな写真と、家族との日々を発信。' },
   { name: '柴犬マロたん。', handle: '@minapple', platform: 'Instagram', url: 'https://www.instagram.com/minapple/', breeds: '柴犬', followers: 509000, checkedAt: '2026.09.06', description: '被りものや季節の装いも人気な、柴犬マロたんの日常。' },
   { name: 'たまねぎ家', handle: '@tamanegi.qoo.riku', platform: 'Instagram', url: 'https://www.instagram.com/tamanegi.qoo.riku/', breeds: 'スタンダードプードル', followers: 517000, checkedAt: '2026.09.06', description: 'スタンダードプードルたちと家族の、にぎやかで温かな暮らし。' },
@@ -400,4 +400,4 @@ export const socialCreators: SocialCreator[] = [
   { name: 'Cosito', handle: '@soyuncosito', platform: 'TikTok', url: 'https://www.tiktok.com/@soyuncosito', breeds: 'ヨークシャーテリア', followers: 105300, checkedAt: '2026.09', description: 'ヨークシャーテリアの小さな冒険とかわいいリアクション。' },
   { name: 'Goody the Golden', handle: '@goodythegolden', platform: 'TikTok', url: 'https://www.tiktok.com/@goodythegolden', breeds: 'ゴールデンレトリバー', followers: 78900, checkedAt: '2026.09', description: '人懐っこいゴールデンGoodyの楽しい日常。' },
   { name: 'Our Golden Bros', handle: '@ourgoldenbros', platform: 'TikTok', url: 'https://www.tiktok.com/@ourgoldenbros', breeds: 'ゴールデンレトリバー', followers: 78600, checkedAt: '2026.09', description: 'ゴールデン兄弟の仲良しな遊びと成長記録。' },
-].filter((creator) => creator.followers >= 1000);
+] satisfies SocialCreator[]).filter((creator) => creator.followers >= 1000);

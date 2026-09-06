@@ -9,7 +9,7 @@ const formatViews = (count: number) => count >= 100000000
 export function LiveVideoViews({ id, fallback }: { id: string; fallback: string }) {
   const [value, setValue] = useState(fallback);
   useEffect(() => {
-    fetch('/api/youtube').then((response) => response.json()).then((data) => {
+    fetch('/api/youtube').then((response) => response.json() as Promise<{ videos?: Record<string, number> }>).then((data) => {
       if (typeof data?.videos?.[id] === 'number') setValue(formatViews(data.videos[id]));
     }).catch(() => undefined);
   }, [id]);
