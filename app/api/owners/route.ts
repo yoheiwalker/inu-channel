@@ -64,6 +64,7 @@ async function fetchChannel(channel: typeof extraOwnerChannels[number]) {
         headers: { 'user-agent': 'Mozilla/5.0' }, signal: controller.signal,
       }),
     ]);
+    if (!pageResponse.ok || !feedResponse.ok) throw new Error('YouTube response unavailable');
     const [html, xml] = await Promise.all([pageResponse.text(), feedResponse.text()]);
     const initial = extractInitialData(html);
     const header = findObjectWithKey(initial, 'pageHeaderRenderer');
@@ -84,16 +85,18 @@ export async function GET(request: Request) {
   const selectedChannels = extraOwnerChannels.slice(group * ownerApiGroupSize, (group + 1) * ownerApiGroupSize);
   const settled = await Promise.allSettled(selectedChannels.map(fetchChannel));
   const channels = settled.flatMap((result) => result.status === 'fulfilled' ? [result.value] : []);
+  const complete = channels.length === selectedChannels.length && channels.every((channel) => channel.avatar && channel.latest);
   return Response.json({
     updatedAt: new Date().toISOString(),
     refreshHours: 6,
     group,
     groupCount: ownerApiGroupCount,
+    complete,
     channels: Object.fromEntries(channels.map((channel) => [channel.channelId, channel])),
     videos: {},
   }, {
     headers: {
-      'cache-control': 'public, s-maxage=21600, stale-while-revalidate=86400',
+      'cache-control': complete ? 'public, s-maxage=21600, stale-while-revalidate=86400' : 'no-store',
     },
   });
 }

@@ -13,6 +13,7 @@ type LiveData = {
   refreshHours: number;
   channels: Record<string, { subscriber: string | null; avatar: string | null; latest: { id: string; title: string; published: string } | null }>;
   videos: Record<string, number>;
+  complete?: boolean;
 };
 
 const formatViews = (count: number) => count >= 100000000
@@ -34,22 +35,25 @@ export default function Home() {
   const [directoryBreed, setDirectoryBreed] = useState('すべて');
 
   useEffect(() => {
-    const load = () => Promise.all([
-      fetch('/api/youtube').then((response) => response.ok ? response.json() as Promise<LiveData> : Promise.reject()).catch(() => null),
-      ...Array.from({ length: ownerApiGroupCount }, (_, group) => fetch(`/api/owners?group=${group}`).then((response) => response.ok ? response.json() as Promise<LiveData> : Promise.reject()).catch(() => null)),
-    ]).then(([primary, ...ownerGroups]) => {
-      const availableOwnerGroups = ownerGroups.filter((item): item is LiveData => Boolean(item));
-      if (!primary && !availableOwnerGroups.length) return;
-      setLive({
-        updatedAt: primary?.updatedAt || availableOwnerGroups[0]?.updatedAt || new Date().toISOString(),
-        refreshHours: 6,
-        channels: Object.assign({}, primary?.channels || {}, ...availableOwnerGroups.map((item) => item.channels)),
-        videos: primary?.videos || {},
-      });
-    });
+    let cancelled = false;
+    const mergeLive = (incoming: LiveData) => !cancelled && setLive((current) => ({
+      updatedAt: incoming.updatedAt,
+      refreshHours: 6,
+      channels: { ...(current?.channels || {}), ...incoming.channels },
+      videos: { ...(current?.videos || {}), ...incoming.videos },
+    }));
+    const fetchJson = (url: string) => fetch(url).then((response) => response.ok ? response.json() as Promise<LiveData> : Promise.reject()).catch(() => null);
+    const load = async () => {
+      fetchJson('/api/youtube').then((primary) => { if (primary) mergeLive(primary); });
+      for (let group = 0; group < ownerApiGroupCount && !cancelled; group += 1) {
+        let owners = await fetchJson(`/api/owners?group=${group}&catalog=2`);
+        if (owners && owners.complete === false) owners = await fetchJson(`/api/owners?group=${group}&catalog=2&retry=${Date.now()}`);
+        if (owners) mergeLive(owners);
+      }
+    };
     load();
     const timer = window.setInterval(load, 30 * 60 * 1000);
-    return () => window.clearInterval(timer);
+    return () => { cancelled = true; window.clearInterval(timer); };
   }, []);
 
   const liveVideos = useMemo(() => videos.map((video) => ({ ...video, liveViewCount: live?.videos[video.id] ?? video.viewCount })), [live]);
