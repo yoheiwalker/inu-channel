@@ -48,8 +48,10 @@ function parseLatest(xml: string) {
   const id = entry.match(/<yt:videoId>([^<]+)<\/yt:videoId>/)?.[1];
   const title = entry.match(/<title>([\s\S]*?)<\/title>/)?.[1];
   const published = entry.match(/<published>([^<]+)<\/published>/)?.[1];
+  const viewText = entry.match(/<media:statistics views="([0-9]+)"/)?.[1];
   if (!id || !title || !published) return null;
-  return { id, title: decodeXml(title), published };
+  const views = Number(viewText);
+  return { id, title: decodeXml(title), published, views: Number.isFinite(views) ? views : null };
 }
 
 async function fetchChannel(channel: typeof channelSummaries[number]) {

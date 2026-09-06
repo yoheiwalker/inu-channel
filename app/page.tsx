@@ -11,7 +11,7 @@ const directoryBreedOptions = ['すべて', ...Array.from(new Set(allChannels.fl
 type LiveData = {
   updatedAt: string;
   refreshHours: number;
-  channels: Record<string, { subscriber: string | null; avatar: string | null; latest: { id: string; title: string; published: string } | null }>;
+  channels: Record<string, { subscriber: string | null; avatar: string | null; latest: { id: string; title: string; published: string; views: number | null } | null }>;
   videos: Record<string, number>;
   complete?: boolean;
 };
@@ -33,6 +33,7 @@ export default function Home() {
   const [directoryQuery, setDirectoryQuery] = useState('');
   const [directoryMode, setDirectoryMode] = useState('飼い主さん');
   const [directoryBreed, setDirectoryBreed] = useState('すべて');
+  const [rankingTab, setRankingTab] = useState<'総合ランキング' | '最新動画ランキング'>('総合ランキング');
 
   useEffect(() => {
     let cancelled = false;
@@ -57,10 +58,15 @@ export default function Home() {
   }, []);
 
   const liveVideos = useMemo(() => videos.map((video) => ({ ...video, liveViewCount: live?.videos[video.id] ?? video.viewCount })), [live]);
-  const latestVideos = useMemo(() => allChannels.flatMap((item) => {
+  const allLatestVideos = useMemo(() => allChannels.flatMap((item) => {
     const latest = live?.channels[item.channelId]?.latest;
-    return latest ? [{ ...latest, channel: item.name }] : [];
-  }).sort((a, b) => b.published.localeCompare(a.published)).slice(0, 9), [live]);
+    return latest ? [{ ...latest, channel: item.name, breed: item.breeds }] : [];
+  }), [live]);
+  const latestVideos = useMemo(() => [...allLatestVideos].sort((a, b) => b.published.localeCompare(a.published)).slice(0, 9), [allLatestVideos]);
+  const rankingVideos = useMemo(() => rankingTab === '総合ランキング'
+    ? [...liveVideos].sort((a, b) => b.liveViewCount - a.liveViewCount).slice(0, 10).map((video) => ({ ...video, rankingViews: video.liveViewCount, href: `/videos/${video.id}` }))
+    : allLatestVideos.filter((video) => video.views !== null).sort((a, b) => (b.views || 0) - (a.views || 0)).slice(0, 10).map((video) => ({ ...video, rankingViews: video.views || 0, href: youtubeFor(video.id) })),
+  [allLatestVideos, liveVideos, rankingTab]);
 
   const directoryChannels = useMemo(() => {
     const needle = directoryQuery.trim().toLowerCase();
@@ -96,7 +102,7 @@ export default function Home() {
     <main>
       <header className="topbar">
         <a className="brand" href="#top"><span className="brand-mark">犬</span><span>犬<em>ちゃんねる</em></span></a>
-        <nav><a href="#videos">推し動画</a><a href="#channels">犬ドル名鑑</a><a href="#guide">推しポイント</a></nav>
+        <nav><a href="#ranking">再生ランキング</a><a href="#videos">推し動画</a><a href="#channels">犬ドル名鑑</a><a href="#guide">推しポイント</a></nav>
         <a className="submit-button" href="mailto:?subject=犬ちゃんねる掲載希望">♡ 推薦する</a>
       </header>
 
@@ -120,6 +126,22 @@ export default function Home() {
         <div className="latest-inner">
           <div className="section-title-row"><div><p className="eyebrow">NEW RELEASE</p><h2 id="latest-title">犬ドルの最新動画 ♡</h2></div><span className="auto-badge"><span className="live-dot"/> 自動更新中</span></div>
           {latestVideos.length ? <div className="latest-grid">{latestVideos.map((video) => <a className="latest-card" href={youtubeFor(video.id)} target="_blank" rel="noreferrer" key={video.id}><img src={thumbnailFor(video.id)} alt={`${video.title}のサムネイル`}/><div><small>{video.channel}</small><h3>{video.title}</h3><p>{new Date(video.published).toLocaleDateString('ja-JP')} 公開 ↗</p></div></a>)}</div> : <div className="latest-grid">{videos.slice(0, 6).map((video) => <a className="latest-card" href={youtubeFor(video.id)} target="_blank" rel="noreferrer" key={video.id}><img src={thumbnailFor(video.id)} alt={`${video.title}のサムネイル`}/><div><small>{video.channel}</small><h3>{video.title}</h3><p>最新情報を取得中…</p></div></a>)}</div>}
+        </div>
+      </section>
+
+      <section className="ranking-section" id="ranking">
+        <div className="ranking-inner">
+          <div className="finder-head ranking-head"><div><p className="eyebrow">MOST VIEWED DOG VIDEOS</p><h2>再生回数ランキング ♡</h2></div><p>{rankingTab === '総合ランキング' ? `内容確認済みの人気動画${videos.length}本を、現在の再生回数で順位付け。` : '名鑑に掲載中の各チャンネルから、直近投稿の再生回数を比較。'}6時間ごとに更新します。</p></div>
+          <div className="ranking-tabs">{(['総合ランキング', '最新動画ランキング'] as const).map((item) => <button className={rankingTab === item ? 'selected' : ''} onClick={() => setRankingTab(item)} key={item}>{item}</button>)}</div>
+          <div className="ranking-list">{rankingVideos.map((video, index) => (
+            <a className={`ranking-row ${index < 3 ? `ranking-winner winner-${index + 1}` : ''}`} href={video.href} target={rankingTab === '最新動画ランキング' ? '_blank' : undefined} rel={rankingTab === '最新動画ランキング' ? 'noreferrer' : undefined} key={`${rankingTab}-${video.id}`}>
+              <span className="ranking-number">{index + 1}<small>位</small></span>
+              <img src={thumbnailFor(video.id)} alt={`${video.title}のサムネイル`} loading="lazy" />
+              <div className="ranking-copy"><small>{video.channel}</small><h3>{video.title}</h3><p>{video.breed}</p></div>
+              <div className="ranking-views"><span>▶</span><b>{formatViews(video.rankingViews)}</b><small>{rankingTab === '最新動画ランキング' ? '最新動画' : '総再生回数'}</small></div>
+            </a>
+          ))}</div>
+          <p className="ranking-note">公開されているYouTube情報をもとに集計 ・ {live ? `最終取得 ${formatDate(live.updatedAt)}` : '最新情報を取得中…'}</p>
         </div>
       </section>
 
