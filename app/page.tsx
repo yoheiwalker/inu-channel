@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { allChannels, categoryInfo, channelSummaries, extraOwnerChannels, ownerApiGroupCount, rankingDate, thumbnailFor, videos, youtubeFor } from './data';
+import { allChannels, categoryInfo, channelSummaries, extraOwnerChannels, ownerApiGroupCount, rankingDate, socialCreators, thumbnailFor, videos, youtubeFor } from './data';
 
 const breedOptions = ['すべて', ...Array.from(new Set(videos.map((video) => video.breed)))];
 const ageOptions = ['すべて', '子犬', '成犬', 'シニア', '全年齢'];
 const channelOptions = ['すべて', ...channelSummaries.map((channel) => channel.name)];
-const directoryBreedOptions = ['すべて', ...Array.from(new Set(allChannels.flatMap((item) => item.breeds.split('・')))).sort((a, b) => a.localeCompare(b, 'ja'))];
+const directoryBreedOptions = ['すべて', ...Array.from(new Set([...allChannels.map((item) => item.breeds), ...socialCreators.map((item) => item.breeds)].flatMap((value) => value.split('・')))).sort((a, b) => a.localeCompare(b, 'ja'))];
 
 type LiveData = {
   updatedAt: string;
@@ -21,6 +21,7 @@ const formatViews = (count: number) => count >= 100000000
   : count >= 10000 ? `${(count / 10000).toFixed(1)}万回` : `${count.toLocaleString('ja-JP')}回`;
 
 const formatDate = (value: string) => new Intl.DateTimeFormat('ja-JP', { month: 'numeric', day: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(value));
+const formatFollowers = (count: number) => count >= 10000 ? `約${(count / 10000).toFixed(count >= 100000 ? 0 : 1)}万人` : `${count.toLocaleString('ja-JP')}人`;
 
 export default function Home() {
   const [live, setLive] = useState<LiveData | null>(null);
@@ -33,6 +34,7 @@ export default function Home() {
   const [directoryQuery, setDirectoryQuery] = useState('');
   const [directoryMode, setDirectoryMode] = useState('飼い主さん');
   const [directoryBreed, setDirectoryBreed] = useState('すべて');
+  const [directoryPlatform, setDirectoryPlatform] = useState<'YouTube' | 'Instagram' | 'TikTok'>('YouTube');
   const [rankingTab, setRankingTab] = useState<'総合ランキング' | '最新動画ランキング'>('総合ランキング');
 
   useEffect(() => {
@@ -80,6 +82,16 @@ export default function Home() {
     });
   }, [directoryMode, directoryQuery, directoryBreed]);
 
+  const directorySocialCreators = useMemo(() => {
+    const needle = directoryQuery.trim().toLowerCase();
+    return socialCreators.filter((item) => {
+      const haystack = `${item.name} ${item.handle} ${item.breeds} ${item.description}`.toLowerCase();
+      return item.platform === directoryPlatform
+        && (directoryBreed === 'すべて' || item.breeds.includes(directoryBreed))
+        && (!needle || haystack.includes(needle));
+    }).sort((a, b) => b.followers - a.followers);
+  }, [directoryPlatform, directoryQuery, directoryBreed]);
+
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
     const result = liveVideos.filter((video) => {
@@ -118,7 +130,7 @@ export default function Home() {
         <div className="idol-stage" aria-label="注目の犬動画">
           <div className="idol-orbit"/><span className="idol-crown">♛</span><span className="idol-bubble">今週のセンター！</span>
           {videos.filter((video) => video.rank === 1).slice(0, 3).map((video, index) => <a className={`idol-card ${['one','two','three'][index]}`} href={`/videos/${video.id}`} key={video.id}><img src={thumbnailFor(video.id)} alt={video.title}/><strong>{video.channel}</strong><small>人気 第1位 ♡</small></a>)}
-          <div className="hero-stats"><div><b>{videos.length}</b><span>推し動画</span></div><div><b>{allChannels.length}</b><span>犬ドル</span></div><div><b>6</b><span>部門</span></div></div>
+          <div className="hero-stats"><div><b>{videos.length}</b><span>推し動画</span></div><div><b>{allChannels.length + socialCreators.length}</b><span>掲載アカウント</span></div><div><b>3</b><span>SNS</span></div></div>
         </div>
       </section>
 
@@ -178,14 +190,17 @@ export default function Home() {
       </section>
 
       <section className="channel-section" id="channels">
-        <div className="finder-head"><div><p className="eyebrow">DOG OWNER YOUTUBER DIRECTORY</p><h2>飼い主YouTuber名鑑 ♡</h2></div><p>犬種別に探した飼い主さん系{extraOwnerChannels.length + 2}組を収録。登録者数・チャンネル画像・最新動画をYouTubeの公開情報から自動取得します。</p></div>
-        <div className="directory-tools">
-          <label className="search-box"><span>⌕</span><input value={directoryQuery} onChange={(event) => setDirectoryQuery(event.target.value)} placeholder="犬種・チャンネル名で探す" /><button onClick={() => setDirectoryQuery('')} aria-label="検索をクリア">×</button></label>
-          <label className="directory-breed"><span>犬種</span><select value={directoryBreed} onChange={(event) => setDirectoryBreed(event.target.value)}>{directoryBreedOptions.map((item) => <option key={item}>{item}</option>)}</select></label>
-          <div className="directory-tabs">{['飼い主さん', 'すべて', 'TOP3まとめあり'].map((item) => <button key={item} className={directoryMode === item ? 'selected' : ''} onClick={() => setDirectoryMode(item)}>{item}</button>)}</div>
-          <p><b>{directoryChannels.length}</b> チャンネル表示中</p>
+        <div className="finder-head"><div><p className="eyebrow">DOG OWNER CREATOR DIRECTORY</p><h2>飼い主クリエイター名鑑 ♡</h2></div><p>YouTube {extraOwnerChannels.length + 2}組に加え、フォロワー1,000人以上を確認したInstagram・TikTok {socialCreators.length}組を収録しました。</p></div>
+        <div className="platform-tabs" aria-label="SNSを選択">
+          {(['YouTube', 'Instagram', 'TikTok'] as const).map((item) => <button key={item} className={directoryPlatform === item ? `selected ${item.toLowerCase()}` : ''} onClick={() => setDirectoryPlatform(item)}><span>{item === 'YouTube' ? '▶' : item === 'Instagram' ? '◎' : '♪'}</span>{item}<small>{item === 'YouTube' ? extraOwnerChannels.length + 2 : socialCreators.filter((creator) => creator.platform === item).length}</small></button>)}
         </div>
-        <div className="channel-list">{directoryChannels.map((channel) => (
+        <div className="directory-tools">
+          <label className="search-box"><span>⌕</span><input value={directoryQuery} onChange={(event) => setDirectoryQuery(event.target.value)} placeholder="犬種・アカウント名で探す" /><button onClick={() => setDirectoryQuery('')} aria-label="検索をクリア">×</button></label>
+          <label className="directory-breed"><span>犬種</span><select value={directoryBreed} onChange={(event) => setDirectoryBreed(event.target.value)}>{directoryBreedOptions.map((item) => <option key={item}>{item}</option>)}</select></label>
+          {directoryPlatform === 'YouTube' ? <div className="directory-tabs">{['飼い主さん', 'すべて', 'TOP3まとめあり'].map((item) => <button key={item} className={directoryMode === item ? 'selected' : ''} onClick={() => setDirectoryMode(item)}>{item}</button>)}</div> : <span className="verified-filter">✓ 1,000人以上のみ</span>}
+          <p><b>{directoryPlatform === 'YouTube' ? directoryChannels.length : directorySocialCreators.length}</b> 件表示中</p>
+        </div>
+        {directoryPlatform === 'YouTube' ? <div className="channel-list">{directoryChannels.map((channel) => (
           <article className="channel-row" key={channel.name}>
             <img src={live?.channels[channel.channelId]?.avatar || channel.thumbnail} alt={`${channel.name}のチャンネル画像`} loading="lazy" />
             <div className="channel-row-copy"><span>{channel.category}</span><h3>{channel.name}</h3><p>{channel.videos ? '人気TOP3掲載' : '最新動画を自動取得'} ・ {channel.breeds}</p>{channel.description && <small>{channel.description}</small>}</div>
@@ -193,12 +208,21 @@ export default function Home() {
             {channel.videos ? <p className="channel-total">TOP3 合計 ▶ {formatViews(videos.filter((video) => video.channelId === channel.channelId).reduce((sum, video) => sum + (live?.videos[video.id] ?? video.viewCount), 0))}</p> : <p className="channel-total latest-title">最新：{live?.channels[channel.channelId]?.latest?.title || '情報を取得中…'}</p>}
             <div className="channel-links">{channel.videos && <button onClick={() => { setChannel(channel.name); document.getElementById('videos')?.scrollIntoView({ behavior: 'smooth' }); }}>TOP3を見る</button>}<a href={channel.channelUrl} target="_blank" rel="noreferrer">YouTube</a>{channel.instagram && <a className="ig-button" href={channel.instagram} target="_blank" rel="noreferrer">Instagram</a>}</div>
           </article>
-        ))}</div>
+        ))}</div> : <div className="social-list">{directorySocialCreators.map((creator) => (
+          <article className={`social-card ${creator.platform.toLowerCase()}`} key={`${creator.platform}-${creator.handle}`}>
+            <div className="social-avatar" aria-hidden="true">{creator.platform === 'Instagram' ? 'IG' : '♪'}</div>
+            <div className="social-card-copy"><span className="social-platform">{creator.platform}</span><h3>{creator.name}</h3><p>{creator.handle}</p><small>{creator.description}</small></div>
+            <div className="social-followers"><b>{formatFollowers(creator.followers)}</b><span>フォロワー</span></div>
+            <div className="social-breed">🐾 {creator.breeds}</div>
+            <p className="social-checked">✓ 公開プロフィール確認 {creator.checkedAt}</p>
+            <a className="social-open" href={creator.url} target="_blank" rel="noreferrer">{creator.platform}で見る ↗</a>
+          </article>
+        ))}</div>}
       </section>
 
       <section className="info-guide" id="guide">
         <div><p className="eyebrow">OSHIKATSU POINT</p><h2>推す前に知りたいこと、<br/>ひと目で。</h2></div>
-        <div className="guide-grid"><div><b>01</b><h3>犬種・対象年齢</h3><p>うちの子に近い動画か、見る前に判断できます。</p></div><div><b>02</b><h3>要点・テーマ</h3><p>動画でわかることを短く整理しています。</p></div><div><b>03</b><h3>発信元・SNS</h3><p>YouTubeとInstagramへ直接移動できます。</p></div><div><b>04</b><h3>公開日・長さ</h3><p>情報の新しさと視聴時間を確認できます。</p></div></div>
+        <div className="guide-grid"><div><b>01</b><h3>犬種・対象年齢</h3><p>うちの子に近い動画か、見る前に判断できます。</p></div><div><b>02</b><h3>要点・テーマ</h3><p>動画でわかることを短く整理しています。</p></div><div><b>03</b><h3>発信元・SNS</h3><p>YouTube・Instagram・TikTokへ直接移動できます。</p></div><div><b>04</b><h3>公開日・長さ</h3><p>情報の新しさと視聴時間を確認できます。</p></div></div>
       </section>
 
       <footer><a className="brand" href="#top"><span className="brand-mark">犬</span><span>犬ちゃんねる</span></a><p>推したい犬と、毎日会える。</p><span>© 2026 犬ちゃんねる</span></footer>

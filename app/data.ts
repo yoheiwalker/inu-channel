@@ -6,6 +6,17 @@ export type Video = {
   source?: string; note?: string;
 };
 
+export type SocialCreator = {
+  name: string;
+  handle: string;
+  platform: 'Instagram' | 'TikTok';
+  url: string;
+  breeds: string;
+  followers: number;
+  checkedAt: string;
+  description: string;
+};
+
 export const rankingDate = '2026.09.06';
 
 export const categoryInfo = [
@@ -266,3 +277,38 @@ export const extraOwnerChannels: ChannelSummary[] = [
 export const allChannels: ChannelSummary[] = [...channelSummaries, ...extraOwnerChannels];
 export const ownerApiGroupSize = 16;
 export const ownerApiGroupCount = Math.ceil(extraOwnerChannels.length / ownerApiGroupSize);
+
+export const socialCreators: SocialCreator[] = [
+  { name: '柴犬まる', handle: '@marutaro', platform: 'Instagram', url: 'https://www.instagram.com/marutaro/', breeds: '柴犬', followers: 2000000, checkedAt: '2026.09.06', description: '柴犬まるの表情豊かな写真と、家族との日々を発信。' },
+  { name: '柴犬マロたん。', handle: '@minapple', platform: 'Instagram', url: 'https://www.instagram.com/minapple/', breeds: '柴犬', followers: 509000, checkedAt: '2026.09.06', description: '被りものや季節の装いも人気な、柴犬マロたんの日常。' },
+  { name: 'たまねぎ家', handle: '@tamanegi.qoo.riku', platform: 'Instagram', url: 'https://www.instagram.com/tamanegi.qoo.riku/', breeds: 'スタンダードプードル', followers: 517000, checkedAt: '2026.09.06', description: 'スタンダードプードルたちと家族の、にぎやかで温かな暮らし。' },
+  { name: 'かぼすママ', handle: '@kabosumama', platform: 'Instagram', url: 'https://www.instagram.com/kabosumama/', breeds: '柴犬・保護犬', followers: 498000, checkedAt: '2026.09.06', description: 'かぼすちゃんから続く、保護犬・保護猫家族の記録。' },
+  { name: '柴犬チャーミー', handle: '@shiba_charmy', platform: 'Instagram', url: 'https://www.instagram.com/shiba_charmy/', breeds: '柴犬', followers: 437000, checkedAt: '2026.09.06', description: '笑顔とやさしい表情が魅力の柴犬チャーミー。' },
+  { name: '柴犬だいふく', handle: '@daifuku_channel', platform: 'Instagram', url: 'https://www.instagram.com/daifuku_channel/', breeds: '柴犬', followers: 332000, checkedAt: '2026.09.06', description: '大きな福を招くような、だいふくの愛らしい毎日。' },
+  { name: '柴犬岳と寅次朗', handle: '@shibainu.gaku', platform: 'Instagram', url: 'https://www.instagram.com/shibainu.gaku/', breeds: '柴犬', followers: 200000, checkedAt: '2026.09.06', description: '柴犬の岳と猫の寅次朗、仲良し兄弟の暮らし。' },
+  { name: 'MOGU & SUU', handle: '@the_shiba_mogu', platform: 'Instagram', url: 'https://www.instagram.com/the_shiba_mogu/', breeds: '柴犬', followers: 191000, checkedAt: '2026.09.06', description: '柴犬もぐと家族の、ほのぼのした写真と動画。' },
+  { name: '日向・蒼生・空', handle: '@hinaosora', platform: 'Instagram', url: 'https://www.instagram.com/hinaosora/', breeds: '柴犬', followers: 190000, checkedAt: '2026.09.06', description: '黒柴と赤柴、個性豊かな柴犬3兄弟の日常。' },
+  { name: 'にこちゃん＆たまちゃん', handle: '@nikochan.mame48', platform: 'Instagram', url: 'https://www.instagram.com/nikochan.mame48/', breeds: '豆柴', followers: 175000, checkedAt: '2026.09.06', description: 'にこたまコンビの、表情いっぱいな豆柴暮らし。' },
+  { name: 'アーニー', handle: '@ernie_pooh_', platform: 'Instagram', url: 'https://www.instagram.com/ernie_pooh_/', breeds: 'トイプードル', followers: 116000, checkedAt: '2026.09.06', description: 'ぬいぐるみのようなトイプードル、アーニーの記録。' },
+  { name: 'まるぱぴ ゴマ', handle: '@marupgoma_c', platform: 'Instagram', url: 'https://www.instagram.com/marupgoma_c/', breeds: 'マルチーズ・パピヨンMIX', followers: 92000, checkedAt: '2026.09.06', description: '大きな耳と白い毛並みが印象的なゴマの日常。' },
+  { name: 'タカリンコと柴犬忠太', handle: '@kowakusuritagoura89', platform: 'Instagram', url: 'https://www.instagram.com/kowakusuritagoura89/', breeds: '柴犬', followers: 227000, checkedAt: '2026.09.06', description: '柴犬忠太と飼い主さんの、自然に囲まれた暮らし。' },
+  { name: 'SHIBA HANA', handle: '@mirimogu', platform: 'Instagram', url: 'https://www.instagram.com/mirimogu/', breeds: '柴犬', followers: 183000, checkedAt: '2026.09.06', description: '東京で暮らす柴犬はなの、癒やしの寝姿と毎日。' },
+  { name: 'uri home', handle: '@uri__home', platform: 'Instagram', url: 'https://www.instagram.com/uri__home/', breeds: '犬・多頭飼い', followers: 177000, checkedAt: '2026.09.06', description: '3匹の犬と家族が快適に暮らす家づくりの記録。' },
+  { name: 'asasaと保護犬たち', handle: '@asasa0509', platform: 'Instagram', url: 'https://www.instagram.com/asasa0509/', breeds: '保護犬・多頭飼い', followers: 127000, checkedAt: '2026.09.06', description: '保護犬しずく・なぎと家族の暮らしとインテリア。' },
+  { name: '柴雄＆茶太郎', handle: '@shibaochatarou', platform: 'Instagram', url: 'https://www.instagram.com/shibaochatarou/', breeds: '柴犬・チワワ', followers: 96992, checkedAt: '2026.08.25', description: '柴犬とチワワ、それぞれの個性が光る多頭飼いの日常。' },
+  { name: 'ななちゃん', handle: '@nana_chan7723', platform: 'Instagram', url: 'https://www.instagram.com/nana_chan7723/', breeds: 'シーズー', followers: 59000, checkedAt: '2026.09.06', description: '南国で暮らすシーズー、ななちゃんのお散歩と成長記録。' },
+  { name: 'まみ｜わんこ×収納', handle: '@ma.home___', platform: 'Instagram', url: 'https://www.instagram.com/ma.home___/', breeds: '犬', followers: 49000, checkedAt: '2026.09.06', description: '犬と人が心地よく暮らす収納や動線のアイデア。' },
+  { name: '柴犬のモモ', handle: '@shi_ba_i_nu_momo', platform: 'Instagram', url: 'https://www.instagram.com/shi_ba_i_nu_momo/', breeds: '柴犬', followers: 39000, checkedAt: '2026.09.06', description: '東京で暮らす柴犬モモのお散歩と日常。' },
+  { name: '分家のおかわり', handle: '@komakoma2025', platform: 'TikTok', url: 'https://www.tiktok.com/@komakoma2025', breeds: '柴犬', followers: 290000, checkedAt: '2026.09.04', description: '柴犬こまちゃんと飼い主さんのテンポのよい日常Vlog。' },
+  { name: 'ペコピノ＆さっちゃん', handle: '@sachanpug', platform: 'TikTok', url: 'https://www.tiktok.com/@sachanpug', breeds: 'パグ', followers: 279900, checkedAt: '2026.08.27', description: 'パグたちとの旅行や遊びを、楽しいVlogで発信。' },
+  { name: 'コーギーのバン君', handle: '@van02030', platform: 'TikTok', url: 'https://www.tiktok.com/@van02030', breeds: 'ウェルシュ・コーギー', followers: 13600, checkedAt: '2026.09.03', description: '7歳のコーギー、バン君ののんびりした日常。' },
+  { name: 'まりーちゃん', handle: '@marry320111', platform: 'TikTok', url: 'https://www.tiktok.com/@marry320111', breeds: 'ゴールデンレトリバー', followers: 10700, checkedAt: '2026.09.04', description: '自然や水辺へ出かけるゴールデンレトリバーとの暮らし。' },
+  { name: 'チワワのちゃむこて', handle: '@chumkote', platform: 'TikTok', url: 'https://www.tiktok.com/@chumkote', breeds: 'チワワ', followers: 6152, checkedAt: '2026.08.26', description: 'タヌキのように愛らしいチワワ2匹の成長記録。' },
+  { name: 'チワワのルーク', handle: '@luke_0915_skywalker', platform: 'TikTok', url: 'https://www.tiktok.com/@luke_0915_skywalker', breeds: 'チワワ', followers: 4513, checkedAt: '2026.08.26', description: 'ロングコートチワワ、ルークの表情豊かな毎日。' },
+  { name: 'サム＆ネオ', handle: '@samgoldenretriever', platform: 'TikTok', url: 'https://www.tiktok.com/@samgoldenretriever', breeds: 'ゴールデンレトリバー・バーニーズ', followers: 4181, checkedAt: '2026.08.12', description: '大型犬2匹のお散歩や雪遊びなど、仲良しな日々。' },
+  { name: 'めぐちゃん', handle: '@meguchan0208', platform: 'TikTok', url: 'https://www.tiktok.com/@meguchan0208', breeds: 'ビーグル', followers: 1740, checkedAt: '2026.08.26', description: 'シニアのビーグルと旅行やお散歩を楽しむ記録。' },
+  { name: 'Bamu & Belle', handle: '@bamu_belle', platform: 'TikTok', url: 'https://www.tiktok.com/@bamu_belle', breeds: 'ゴールデンレトリバー・MIX', followers: 1419, checkedAt: '2026.08.12', description: 'ゴールデンレトリバーとMIX犬、家族とのやさしい日常。' },
+  { name: 'あおい', handle: '@aoi_sagawa', platform: 'TikTok', url: 'https://www.tiktok.com/@aoi_sagawa', breeds: 'ウェルシュ・コーギー', followers: 1404, checkedAt: '2026.07.29', description: 'コーギーあおいの成長と、家族との暮らし。' },
+  { name: 'はなちゃん', handle: '@hanachann07', platform: 'TikTok', url: 'https://www.tiktok.com/@hanachann07', breeds: '豆柴', followers: 1320, checkedAt: '2026.08.12', description: '豆柴はなちゃんの、くつろぎ時間や日常のひとこま。' },
+  { name: 'のあとりお', handle: '@ri_tan_0405', platform: 'TikTok', url: 'https://www.tiktok.com/@ri_tan_0405', breeds: 'チワワ', followers: 1170, checkedAt: '2026.08.26', description: 'チワワ兄弟の成長と、にぎやかな多頭飼い生活。' },
+].filter((creator) => creator.followers >= 1000);
