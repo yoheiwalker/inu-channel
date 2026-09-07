@@ -121,22 +121,22 @@ export default function Home() {
   return (
     <main>
       <header className="topbar">
-        <a className="brand" href="#top"><span className="brand-mark">犬</span><span>犬<em>ちゃんねる</em></span></a>
+        <a className="brand" href="#top"><span className="brand-mark">🐾</span><span>犬<em>ちゃんねる</em></span></a>
         <nav><a href="#ranking">再生ランキング</a><a href="#videos">推し動画</a><a href="#channels">犬ドル名鑑</a><a href="#guide">推しポイント</a></nav>
         <a className="submit-button" href="mailto:?subject=犬ちゃんねる掲載希望">♡ 推薦する</a>
       </header>
 
       <section className="hero" id="top">
         <div className="hero-copy">
-          <span className="hero-kicker">♡ 推したい犬、きっと見つかる ♡</span>
-          <p className="eyebrow">DOG IDOL VIDEO DIRECTORY</p>
-          <h1>今日から君も、<br/><em>犬ドル推し。</em></h1>
-          <p className="lead">かわいい、ためになる、何度でも見たい。<br/>犬YouTubeのセンター級動画だけを集めました。</p>
+          <span className="hero-kicker">推したい犬、きっと見つかる</span>
+          <p className="eyebrow">JAPAN&apos;S DOG CREATOR GUIDE</p>
+          <h1>犬動画を、<br/><em>もっと好きになる。</em></h1>
+          <p className="lead">かわいいも、ためになるも、ひとつの場所に。<br/>犬のYouTube・Instagram・TikTokを犬種から探せます。</p>
           <div className="hero-actions"><a className="hero-cta" href="#videos">推し動画を探す <span>♡</span></a><a className="hero-cta secondary" href="#channels">犬ドル名鑑を見る</a></div>
           <p className="hero-update"><span className="live-dot"/> YouTubeの公開情報を6時間ごとに自動チェック {live && `・最終取得 ${formatDate(live.updatedAt)}`}</p>
         </div>
         <div className="idol-stage" aria-label="注目の犬動画">
-          <div className="idol-orbit"/><span className="idol-crown">♛</span><span className="idol-bubble">今週のセンター！</span>
+          <div className="idol-orbit"/><span className="idol-crown">✦</span><span className="idol-bubble">みんなの人気者！</span>
           {videos.filter((video) => video.rank === 1).slice(0, 3).map((video, index) => <a className={`idol-card ${['one','two','three'][index]}`} href={`/videos/${video.id}`} key={video.id}><img src={thumbnailFor(video.id)} alt={video.title}/><strong>{video.channel}</strong><small>人気 第1位 ♡</small></a>)}
           <div className="hero-stats"><div><b>{videos.length}</b><span>推し動画</span></div><div><b>{allChannels.length + socialCreators.length}</b><span>掲載アカウント</span></div><div><b>3</b><span>SNS</span></div></div>
         </div>
@@ -234,7 +234,7 @@ export default function Home() {
         <div className="guide-grid"><div><b>01</b><h3>犬種・対象年齢</h3><p>うちの子に近い動画か、見る前に判断できます。</p></div><div><b>02</b><h3>要点・テーマ</h3><p>動画でわかることを短く整理しています。</p></div><div><b>03</b><h3>発信元・SNS</h3><p>YouTube・Instagram・TikTokへ直接移動できます。</p></div><div><b>04</b><h3>公開日・長さ</h3><p>情報の新しさと視聴時間を確認できます。</p></div></div>
       </section>
 
-      <footer><a className="brand" href="#top"><span className="brand-mark">犬</span><span>犬ちゃんねる</span></a><p>推したい犬と、毎日会える。</p><span>© 2026 犬ちゃんねる</span></footer>
+      <footer><a className="brand" href="#top"><span className="brand-mark">🐾</span><span>犬ちゃんねる</span></a><p>推したい犬と、毎日会える。</p><span>© 2026 犬ちゃんねる</span></footer>
     </main>
   );
 }

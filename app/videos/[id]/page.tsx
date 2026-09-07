@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { thumbnailFor, videos, youtubeFor } from '../../data';
 import { LiveVideoViews } from '../../live-youtube';
@@ -29,9 +30,9 @@ export default async function VideoDetail({ params }: Props) {
 
   return (
     <main>
-      <header className="topbar detail-topbar"><a className="brand" href="/"><span className="brand-mark">犬</span><span>犬ちゃんねる</span></a><a className="back-link" href="/#videos">← 動画一覧へ戻る</a></header>
+      <header className="topbar detail-topbar"><Link className="brand" href="/"><span className="brand-mark">🐾</span><span>犬ちゃんねる</span></Link><Link className="back-link" href="/#videos">← 動画一覧へ戻る</Link></header>
       <article className="detail-page">
-        <nav className="breadcrumb"><a href="/">トップ</a><span>›</span><a href={`/#videos`}>{video.category}</a><span>›</span><span>{video.title}</span></nav>
+        <nav className="breadcrumb"><Link href="/">トップ</Link><span>›</span><Link href="/#videos">{video.category}</Link><span>›</span><span>{video.title}</span></nav>
         <div className="detail-layout">
           <section className="detail-main">
             <a className="detail-visual" href={youtubeFor(video.id)} target="_blank" rel="noreferrer"><img src={thumbnailFor(video.id)} alt={`${video.title}のサムネイル`} /><span>▶ YouTubeで再生</span><small>{video.duration}</small></a>
@@ -53,8 +54,8 @@ export default async function VideoDetail({ params }: Props) {
           </aside>
         </div>
       </article>
-      {related.length > 0 && <section className="related"><div className="finder-head"><div><p className="eyebrow">RELATED VIDEOS</p><h2>同じカテゴリの動画</h2></div></div><div className="related-grid">{related.map((item) => <a href={`/videos/${item.id}`} key={item.id}><img src={thumbnailFor(item.id)} alt="" /><span>{item.category}</span><h3>{item.title}</h3><p>{item.channel}</p></a>)}</div></section>}
-      <footer><a className="brand" href="/"><span className="brand-mark">犬</span><span>犬ちゃんねる</span></a><p>犬の動画と、いい出会いを。</p><span>© 2026 犬ちゃんねる</span></footer>
+      {related.length > 0 && <section className="related"><div className="finder-head"><div><p className="eyebrow">RELATED VIDEOS</p><h2>同じカテゴリの動画</h2></div></div><div className="related-grid">{related.map((item) => <Link href={`/videos/${item.id}`} key={item.id}><img src={thumbnailFor(item.id)} alt="" /><span>{item.category}</span><h3>{item.title}</h3><p>{item.channel}</p></Link>)}</div></section>}
+      <footer><Link className="brand" href="/"><span className="brand-mark">🐾</span><span>犬ちゃんねる</span></Link><p>犬の動画と、いい出会いを。</p><span>© 2026 犬ちゃんねる</span></footer>
     </main>
   );
 }
