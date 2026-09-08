@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { allChannels, categoryInfo, channelSummaries, extraOwnerChannels, ownerApiGroupCount, rankingDate, socialCreators, thumbnailFor, videos, youtubeFor, type ChannelSummary, type SocialCreator } from './data';
 import { socialMediaProfiles } from './social-media.generated';
+import { JsonLd } from './json-ld';
+import { breedLandings, categoryLandings, siteUrl } from './seo-data';
 
 const breedOptions = ['すべて', ...Array.from(new Set(videos.map((video) => video.breed)))];
 const ageOptions = ['すべて', '子犬', '成犬', 'シニア', '全年齢'];
@@ -149,6 +151,8 @@ export default function Home() {
 
   return (
     <main>
+      <JsonLd data={{ '@context': 'https://schema.org', '@type': 'WebSite', name: '犬ちゃんねる', alternateName: '犬動画・犬クリエイター名鑑', url: siteUrl, description: '犬のYouTube・Instagram・TikTokを犬種・年齢・発信者別に探せる動画名鑑' }} />
+      <JsonLd data={{ '@context': 'https://schema.org', '@type': 'Organization', name: '犬ちゃんねる', url: siteUrl, logo: `${siteUrl}/favicon.svg` }} />
       <header className="topbar">
         <a className="brand" href="#top"><span className="brand-mark">🐾</span><span>犬<em>ちゃんねる</em></span></a>
         <nav><a href="#ranking">再生ランキング</a><a href="#videos">推し動画</a><a href="#channels">犬ドル名鑑</a><a href="#guide">推しポイント</a></nav>
@@ -204,7 +208,7 @@ export default function Home() {
             <label><span>犬種</span><select value={breed} onChange={(event) => setBreed(event.target.value)}>{breedOptions.map((item) => <option key={item}>{item}</option>)}</select></label>
             <label><span>年齢</span><select value={age} onChange={(event) => setAge(event.target.value)}>{ageOptions.map((item) => <option key={item}>{item}</option>)}</select></label>
           </div>
-          <div className="category-chips">{categoryInfo.map((item) => <button key={item.name} onClick={() => setCategory(item.name)} className={category === item.name ? 'selected' : ''}>{item.icon} {item.name}</button>)}</div>
+        <div className="category-chips">{categoryInfo.map((item) => <button key={item.name} onClick={() => setCategory(item.name)} className={category === item.name ? 'selected' : ''}>{item.icon} {item.name}</button>)}</div>
         </div>
 
         <div className="results-head"><p><b>{filtered.length}</b> 本の推し候補</p><select value={sort} onChange={(event) => setSort(event.target.value)}><option>チャンネル別TOP順</option><option>再生数順</option><option>新しい順</option><option>タイトル順</option></select></div>
@@ -295,7 +299,13 @@ export default function Home() {
         <div className="guide-grid"><div><b>01</b><h3>犬種・対象年齢</h3><p>うちの子に近い動画か、見る前に判断できます。</p></div><div><b>02</b><h3>要点・テーマ</h3><p>動画でわかることを短く整理しています。</p></div><div><b>03</b><h3>発信元・SNS</h3><p>YouTube・Instagram・TikTokへ直接移動できます。</p></div><div><b>04</b><h3>公開日・長さ</h3><p>情報の新しさと視聴時間を確認できます。</p></div></div>
       </section>
 
-      <footer><a className="brand" href="#top"><span className="brand-mark">🐾</span><span>犬ちゃんねる</span></a><p>推したい犬と、毎日会える。</p><span>© 2026 犬ちゃんねる</span></footer>
+      <section className="seo-hub" aria-labelledby="seo-hub-title">
+        <div className="finder-head"><div><p className="eyebrow">DOG VIDEO GUIDE</p><h2 id="seo-hub-title">犬種・発信者から探す</h2></div><p>犬種ごとのYouTube・Instagram・TikTokと、専門家・お店・飼い主さんの動画をまとめて見られます。</p></div>
+        <div className="seo-hub-group"><h3>人気の犬種</h3><div>{breedLandings.map((item) => <a href={`/dog-breeds/${item.slug}`} key={item.slug}>{item.name}<span>→</span></a>)}</div></div>
+        <div className="seo-hub-group"><h3>発信者の種類</h3><div>{categoryLandings.map((item) => <a href={`/categories/${item.slug}`} key={item.slug}>{item.name}<span>→</span></a>)}</div></div>
+      </section>
+
+      <footer><a className="brand" href="#top"><span className="brand-mark">🐾</span><span>犬ちゃんねる</span></a><p>推したい犬と、毎日会える。</p><a href="/about">このサイトについて</a><a href="/editorial-policy">掲載・編集方針</a><span>© 2026 犬ちゃんねる</span></footer>
     </main>
   );
 }
