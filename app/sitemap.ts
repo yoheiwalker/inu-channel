@@ -18,6 +18,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
       changeFrequency: 'monthly' as const,
       priority: 0.5,
     })),
+    {
+      url: `${siteUrl}/rankings/most-viewed`,
+      lastModified: new Date(contentUpdated),
+      changeFrequency: 'weekly',
+      priority: 0.9,
+    },
     ...breedLandings.map((landing) => ({
       url: `${siteUrl}/dog-breeds/${landing.slug}`,
       lastModified: new Date(contentUpdated),

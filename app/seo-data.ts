@@ -31,6 +31,6 @@ export const categoryLandings: SeoLanding[] = [
 ];
 
 export const siteUrl = 'https://moemel.com';
-export const contentUpdated = '2026-09-06';
+export const contentUpdated = '2026-09-08';
 
 export const landingBySlug = (items: SeoLanding[], slug: string) => items.find((item) => item.slug === slug);

@@ -195,6 +195,7 @@ export default function Home() {
             </a>
           ))}</div>
           <p className="ranking-note">公開されているYouTube情報をもとに集計 ・ {rankingTab === '総合ランキング' ? `集計日 ${rankingDate}` : live ? `最終取得 ${formatDate(live.updatedAt)}` : '最新情報を取得中…'}</p>
+          <a className="ranking-more" href="/rankings/most-viewed">犬動画ランキングを30位まで見る →</a>
         </div>
       </section>
 
@@ -303,6 +304,7 @@ export default function Home() {
         <div className="finder-head"><div><p className="eyebrow">DOG VIDEO GUIDE</p><h2 id="seo-hub-title">犬種・発信者から探す</h2></div><p>犬種ごとのYouTube・Instagram・TikTokと、専門家・お店・飼い主さんの動画をまとめて見られます。</p></div>
         <div className="seo-hub-group"><h3>人気の犬種</h3><div>{breedLandings.map((item) => <a href={`/dog-breeds/${item.slug}`} key={item.slug}>{item.name}<span>→</span></a>)}</div></div>
         <div className="seo-hub-group"><h3>発信者の種類</h3><div>{categoryLandings.map((item) => <a href={`/categories/${item.slug}`} key={item.slug}>{item.name}<span>→</span></a>)}</div></div>
+        <a className="seo-ranking-link" href="/rankings/most-viewed"><span>▶</span><div><small>MOST VIEWED</small><b>犬動画 再生回数ランキング TOP30</b></div><em>ランキングを見る →</em></a>
       </section>
 
       <footer><a className="brand" href="#top"><span className="brand-mark">🐾</span><span>犬ちゃんねる</span></a><p>推したい犬と、毎日会える。</p><a href="/about">このサイトについて</a><a href="/editorial-policy">掲載・編集方針</a><span>© 2026 犬ちゃんねる</span></footer>
