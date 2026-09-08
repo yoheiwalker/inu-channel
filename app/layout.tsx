@@ -1,10 +1,12 @@
 import type { Metadata } from 'next';
+import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://inu-channel.yoroll.chatgpt.site'),
+  metadataBase: new URL('https://inu-channel.vercel.app'),
   title: '犬ちゃんねる｜犬動画を、もっと好きになる。',
   description: '犬のYouTube・Instagram・TikTokを犬種から探せるクリエイター名鑑。登録者数、再生数、最新動画を自動更新します。',
+  alternates: { canonical: '/' },
   openGraph: {
     title: '犬ちゃんねる｜犬動画を、もっと好きになる。',
     description: 'かわいいも、ためになるも、ひとつの場所に。犬の人気動画とクリエイターを集めました。',
@@ -25,7 +27,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ja">
-      <body>{children}</body>
+      <body>
+        {children}
+        {process.env.VERCEL === '1' ? <Analytics /> : null}
+      </body>
     </html>
   );
 }

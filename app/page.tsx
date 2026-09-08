@@ -133,7 +133,7 @@ export default function Home() {
           <h1>犬動画を、<br/><em>もっと好きになる。</em></h1>
           <p className="lead">かわいいも、ためになるも、ひとつの場所に。<br/>犬のYouTube・Instagram・TikTokを犬種から探せます。</p>
           <div className="hero-actions"><a className="hero-cta" href="#videos">推し動画を探す <span>♡</span></a><a className="hero-cta secondary" href="#channels">犬ドル名鑑を見る</a></div>
-          <p className="hero-update"><span className="live-dot"/> YouTubeの公開情報を6時間ごとに自動チェック {live && `・最終取得 ${formatDate(live.updatedAt)}`}</p>
+          <p className="hero-update"><span className="live-dot"/> 新着は6時間ごと・全チャンネルは毎週月曜に自動チェック {live && `・最終取得 ${formatDate(live.updatedAt)}`}</p>
         </div>
         <div className="idol-stage" aria-label="注目の犬動画">
           <div className="idol-orbit"/><span className="idol-crown">✦</span><span className="idol-bubble">みんなの人気者！</span>

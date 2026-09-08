@@ -17,6 +17,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${video.title}｜犬ちゃんねる`,
     description: video.description,
+    alternates: { canonical: `/videos/${video.id}` },
     openGraph: { title: video.title, description: video.description, images: [thumbnailFor(video.id)] },
     twitter: { card: 'summary_large_image', title: video.title, description: video.description, images: [thumbnailFor(video.id)] },
   };
