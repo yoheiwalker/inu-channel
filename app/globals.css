@@ -392,3 +392,8 @@ footer p{color:#d9cec4}
 footer a:not(.brand){font-weight:800;text-decoration:underline;text-underline-offset:3px}
 @media(max-width:900px){.seo-hub-group>div,.seo-related>div{grid-template-columns:repeat(2,1fr)}.seo-channel-grid,.seo-social-list{grid-template-columns:1fr 1fr}}
 @media(max-width:620px){.seo-hub{padding:68px 14px}.seo-hub-group>div,.seo-related>div,.seo-channel-grid,.seo-social-list{grid-template-columns:1fr}.seo-page{padding:16px 14px 68px}.seo-hero{padding:40px 17px}.seo-hero h1{font-size:43px}.seo-hero>p:not(.eyebrow){font-size:15px}.seo-section{padding-top:62px}.seo-section.alt{margin:55px 0 0;padding:54px 14px}.seo-related{padding:24px 16px}.seo-related h2{font-size:28px}.seo-channel-grid article{grid-template-columns:64px minmax(0,1fr)}.seo-channel-grid img{width:64px;height:64px}.trust-page{margin-top:42px}.trust-page>h1{font-size:43px}}
+
+.detail-visual{aspect-ratio:16/9;background:#171317}
+.detail-visual iframe{width:100%;height:100%;border:0}
+.detail-watch-link{display:flex;justify-content:space-between;gap:12px;margin:12px 0 0;padding:11px 15px;border:2px solid var(--ink);border-radius:12px;background:var(--yellow);box-shadow:3px 4px 0 var(--ink);font-size:13px;font-weight:950}
+.detail-watch-link small{font-size:12px}

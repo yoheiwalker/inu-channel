@@ -44,7 +44,8 @@ export default async function VideoDetail({ params }: Props) {
         <nav className="breadcrumb"><Link href="/">トップ</Link><span>›</span>{category ? <Link href={`/categories/${category.slug}`}>{video.category}</Link> : <Link href="/#videos">{video.category}</Link>}<span>›</span><span>{video.title}</span></nav>
         <div className="detail-layout">
           <section className="detail-main">
-            <a className="detail-visual" href={youtubeFor(video.id)} target="_blank" rel="noreferrer"><img src={thumbnailFor(video.id)} alt={`${video.title}のサムネイル`} /><span>▶ YouTubeで再生</span><small>{video.duration}</small></a>
+            <div className="detail-visual"><iframe src={`https://www.youtube.com/embed/${video.id}`} title={video.title} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen loading="eager" /></div>
+            <a className="detail-watch-link" href={youtubeFor(video.id)} target="_blank" rel="noreferrer">YouTubeで開く ↗ <small>{video.duration}</small></a>
             <div className="detail-labels"><span>このチャンネルの人気 第{video.rank}位</span><span>{video.category}</span>{video.tags.map((tag) => <span key={tag}>#{tag}</span>)}</div>
             <h1>{video.title}</h1>
             <p className="detail-channel">発信：<b>{video.channel}</b></p>
