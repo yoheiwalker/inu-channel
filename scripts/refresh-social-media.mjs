@@ -153,13 +153,14 @@ async function processCreator(creator) {
   }
   const media = [];
   for (const [index, item] of info.media.entries()) {
+    const { thumbnailUrl, ...publicItem } = item;
     const thumbnail = publicPath(creator.platform, creator.handle, `-${index + 1}`);
     try {
-      if (!item.thumbnailUrl) throw new Error('media thumbnail unavailable');
-      await downloadImage(item.thumbnailUrl, absolutePath(thumbnail));
-      media.push({ ...item, thumbnail });
+      if (!thumbnailUrl) throw new Error('media thumbnail unavailable');
+      await downloadImage(thumbnailUrl, absolutePath(thumbnail));
+      media.push({ ...publicItem, thumbnail });
     } catch {
-      media.push({ ...item, thumbnail: iconPath });
+      media.push({ ...publicItem, thumbnail: iconPath });
     }
   }
   return [key, { icon: iconPath, media }];
