@@ -1,7 +1,7 @@
 import type { MetadataRoute } from 'next';
 import { videos } from './data';
 
-const siteUrl = 'https://inu-channel.vercel.app';
+const siteUrl = 'https://moemel.com';
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

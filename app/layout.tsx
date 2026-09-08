@@ -3,7 +3,7 @@ import { Analytics } from '@vercel/analytics/next';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://inu-channel.vercel.app'),
+  metadataBase: new URL('https://moemel.com'),
   title: '犬ちゃんねる｜犬動画を、もっと好きになる。',
   description: '犬のYouTube・Instagram・TikTokを犬種から探せるクリエイター名鑑。登録者数、再生数、最新動画を自動更新します。',
   alternates: { canonical: '/' },

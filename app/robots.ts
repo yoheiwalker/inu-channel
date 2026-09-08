@@ -1,6 +1,6 @@
 import type { MetadataRoute } from 'next';
 
-const siteUrl = 'https://inu-channel.vercel.app';
+const siteUrl = 'https://moemel.com';
 
 export default function robots(): MetadataRoute.Robots {
   return {
