@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { allChannels, categoryInfo, channelSummaries, extraOwnerChannels, ownerApiGroupCount, rankingDate, socialCreators, thumbnailFor, videos, youtubeFor } from './data';
+import { allChannels, categoryInfo, channelSummaries, extraOwnerChannels, ownerApiGroupCount, rankingDate, socialCreators, thumbnailFor, videos, youtubeFor, type ChannelSummary, type SocialCreator } from './data';
+import { socialMediaProfiles } from './social-media.generated';
 
 const breedOptions = ['すべて', ...Array.from(new Set(videos.map((video) => video.breed)))];
 const ageOptions = ['すべて', '子犬', '成犬', 'シニア', '全年齢'];
@@ -16,6 +17,10 @@ type LiveData = {
   videos: Record<string, number>;
   complete?: boolean;
 };
+
+type DirectoryModal =
+  | { kind: 'youtube'; channel: ChannelSummary }
+  | { kind: 'social'; creator: SocialCreator };
 
 const formatViews = (count: number) => count >= 100000000
   ? `${(count / 100000000).toFixed(1)}億回`
@@ -37,6 +42,8 @@ export default function Home() {
   const [directoryBreed, setDirectoryBreed] = useState('すべて');
   const [directoryPlatform, setDirectoryPlatform] = useState<'YouTube' | 'Instagram' | 'TikTok'>('YouTube');
   const [rankingTab, setRankingTab] = useState<'総合ランキング' | '最新動画ランキング'>('総合ランキング');
+  const [directoryModal, setDirectoryModal] = useState<DirectoryModal | null>(null);
+  const [modalMediaIndex, setModalMediaIndex] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -59,6 +66,18 @@ export default function Home() {
     const timer = window.setInterval(load, 30 * 60 * 1000);
     return () => { cancelled = true; window.clearInterval(timer); };
   }, []);
+
+  useEffect(() => {
+    if (!directoryModal) return;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => { if (event.key === 'Escape') setDirectoryModal(null); };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [directoryModal]);
 
   const liveVideos = useMemo(() => videos.map((video) => ({ ...video, liveViewCount: live?.videos[video.id] ?? video.viewCount })), [live]);
   const allLatestVideos = useMemo(() => allChannels.flatMap((item) => {
@@ -117,6 +136,16 @@ export default function Home() {
   }, [query, category, breed, age, channel, sort, liveVideos]);
 
   const reset = () => { setQuery(''); setCategory('すべて'); setBreed('すべて'); setAge('すべて'); setChannel('すべて'); };
+  const openDirectoryModal = (modal: DirectoryModal) => { setModalMediaIndex(0); setDirectoryModal(modal); };
+
+  const modalSocialProfile = directoryModal?.kind === 'social'
+    ? socialMediaProfiles[`${directoryModal.creator.platform}:${directoryModal.creator.handle}`]
+    : null;
+  const modalYoutubeVideos = directoryModal?.kind === 'youtube'
+    ? videos.filter((video) => video.channelId === directoryModal.channel.channelId).sort((a, b) => a.rank - b.rank)
+    : [];
+  const modalYoutubeLatest = directoryModal?.kind === 'youtube' ? live?.channels[directoryModal.channel.channelId]?.latest : null;
+  const modalYoutubeItems = modalYoutubeVideos.length ? modalYoutubeVideos : modalYoutubeLatest ? [modalYoutubeLatest] : [];
 
   return (
     <main>
@@ -215,19 +244,51 @@ export default function Home() {
             <div className="channel-row-copy"><span>{channel.category}</span><h3>{channel.name}</h3><p>{channel.videos ? '人気TOP3掲載' : '最新動画を自動取得'} ・ {channel.breeds}</p>{channel.description && <small>{channel.description}</small>}</div>
             <div className="subscriber"><b>{live?.channels[channel.channelId]?.subscriber || '—'}</b><span>チャンネル登録者</span></div>
             {channel.videos ? <p className="channel-total">TOP3 合計 ▶ {formatViews(videos.filter((video) => video.channelId === channel.channelId).reduce((sum, video) => sum + (live?.videos[video.id] ?? video.viewCount), 0))}</p> : <p className="channel-total latest-title">最新：{live?.channels[channel.channelId]?.latest?.title || '情報を取得中…'}</p>}
-            <div className="channel-links">{channel.videos && <button onClick={() => { setChannel(channel.name); document.getElementById('videos')?.scrollIntoView({ behavior: 'smooth' }); }}>TOP3を見る</button>}<a href={channel.channelUrl} target="_blank" rel="noreferrer">YouTube</a>{channel.instagram && <a className="ig-button" href={channel.instagram} target="_blank" rel="noreferrer">Instagram</a>}</div>
+            <div className="channel-links"><button onClick={() => openDirectoryModal({ kind: 'youtube', channel })}>{channel.videos ? 'この場でTOP3再生' : '最新動画を再生'}</button><a href={channel.channelUrl} target="_blank" rel="noreferrer">YouTube</a>{channel.instagram && <a className="ig-button" href={channel.instagram} target="_blank" rel="noreferrer">Instagram</a>}</div>
           </article>
         ))}</div> : <div className="social-list">{directorySocialCreators.map((creator) => (
           <article className={`social-card ${creator.platform.toLowerCase()}`} key={`${creator.platform}-${creator.handle}`}>
-            <div className="social-avatar" aria-hidden="true">{creator.platform === 'Instagram' ? 'IG' : '♪'}</div>
+            <img className="social-avatar" src={socialMediaProfiles[`${creator.platform}:${creator.handle}`]?.icon || '/favicon.svg'} alt={`${creator.name}のプロフィール画像`} loading="lazy" onError={(event) => { event.currentTarget.src = '/favicon.svg'; }} />
             <div className="social-card-copy"><span className="social-platform">{creator.platform}</span><h3>{creator.name}</h3><p>{creator.handle}</p><small>{creator.description}</small></div>
             <div className="social-followers"><b>{formatFollowers(creator.followers)}</b><span>フォロワー</span></div>
             <div className="social-breed">🐾 {creator.breeds}</div>
             <p className="social-checked">✓ 公開プロフィール確認 {creator.checkedAt}</p>
-            <a className="social-open" href={creator.url} target="_blank" rel="noreferrer">{creator.platform}で見る ↗</a>
+            <div className="social-actions"><button className="social-open" onClick={() => openDirectoryModal({ kind: 'social', creator })}>この場で人気動画を見る ▶</button><a className="social-profile-link" href={creator.url} target="_blank" rel="noreferrer">公式プロフィール ↗</a></div>
           </article>
         ))}</div>}
       </section>
+
+      {directoryModal && <div className="creator-modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setDirectoryModal(null); }}>
+        <section className={`creator-modal ${directoryModal.kind === 'social' ? directoryModal.creator.platform.toLowerCase() : 'youtube'}`} role="dialog" aria-modal="true" aria-labelledby="creator-modal-title">
+          <button className="creator-modal-close" onClick={() => setDirectoryModal(null)} aria-label="閉じる">×</button>
+          {directoryModal.kind === 'social' ? <>
+            <header className="creator-modal-head">
+              <img src={modalSocialProfile?.icon || '/favicon.svg'} alt="" onError={(event) => { event.currentTarget.src = '/favicon.svg'; }} />
+              <div><span>{directoryModal.creator.platform} CREATOR</span><h2 id="creator-modal-title">{directoryModal.creator.name}</h2><p>{directoryModal.creator.handle} ・ {directoryModal.creator.breeds}</p></div>
+              <strong>{formatFollowers(directoryModal.creator.followers)}<small>フォロワー</small></strong>
+            </header>
+            {modalSocialProfile?.media.length ? <div className="creator-modal-content">
+              <div className="creator-player social-player"><iframe key={modalSocialProfile.media[modalMediaIndex]?.embedUrl} src={modalSocialProfile.media[modalMediaIndex]?.embedUrl} title={`${directoryModal.creator.name}の動画`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen loading="eager" /></div>
+              <div className="creator-modal-side">
+                <p className="modal-ranking-label">{directoryModal.creator.platform === 'TikTok' ? '公開埋め込み内の再生上位' : '公開プロフィールの注目投稿'}</p>
+                <div className="modal-media-tabs">{modalSocialProfile.media.map((item, index) => <button className={modalMediaIndex === index ? 'selected' : ''} onClick={() => setModalMediaIndex(index)} key={`${item.id}-${index}`}><img src={item.thumbnail || modalSocialProfile.icon} alt="" /><span><b>{index + 1}</b><em>{item.title}</em>{item.viewCount !== null && <small>▶ {formatViews(item.viewCount)}</small>}</span></button>)}</div>
+                <p className="modal-note">{directoryModal.creator.platform === 'Instagram' ? 'Instagramは公開されない再生・いいね数を推測せず、プロフィール上の注目投稿を表示しています。' : 'TikTok公式の公開埋め込みに表示された動画を、取得時点の再生数で並べています。'}</p>
+                <a className="modal-external" href={directoryModal.creator.url} target="_blank" rel="noreferrer">公式プロフィールを開く ↗</a>
+              </div>
+            </div> : <div className="creator-modal-empty"><span>🐾</span><h3>動画を準備中です</h3><p>公開プロフィールから動画を取得できない場合があります。</p><a href={directoryModal.creator.url} target="_blank" rel="noreferrer">公式プロフィールを見る ↗</a></div>}
+          </> : <>
+            <header className="creator-modal-head">
+              <img src={live?.channels[directoryModal.channel.channelId]?.avatar || directoryModal.channel.thumbnail} alt="" />
+              <div><span>YOUTUBE CREATOR</span><h2 id="creator-modal-title">{directoryModal.channel.name}</h2><p>{directoryModal.channel.breeds}</p></div>
+              <strong>{live?.channels[directoryModal.channel.channelId]?.subscriber || '—'}<small>登録者</small></strong>
+            </header>
+            {modalYoutubeItems.length ? <div className="creator-modal-content youtube-content">
+              <div className="creator-player youtube-player"><iframe key={modalYoutubeItems[modalMediaIndex]?.id} src={`https://www.youtube.com/embed/${modalYoutubeItems[modalMediaIndex]?.id}`} title={`${directoryModal.channel.name}の動画`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowFullScreen /></div>
+              <div className="creator-modal-side"><p className="modal-ranking-label">{modalYoutubeVideos.length ? 'チャンネル人気 TOP3' : 'チャンネル最新動画'}</p><div className="modal-media-tabs">{modalYoutubeItems.map((item, index) => <button className={modalMediaIndex === index ? 'selected' : ''} onClick={() => setModalMediaIndex(index)} key={item.id}><img src={thumbnailFor(item.id)} alt="" /><span><b>{modalYoutubeVideos.length ? index + 1 : 'NEW'}</b><em>{item.title}</em>{'viewCount' in item && <small>▶ {formatViews(live?.videos[item.id] ?? item.viewCount)}</small>}</span></button>)}</div><a className="modal-external" href={directoryModal.channel.channelUrl} target="_blank" rel="noreferrer">YouTubeチャンネルを開く ↗</a></div>
+            </div> : <div className="creator-modal-empty"><span>🐾</span><h3>最新動画を取得中です</h3><p>しばらくしてからもう一度お試しください。</p></div>}
+          </>}
+        </section>
+      </div>}
 
       <section className="info-guide" id="guide">
         <div><p className="eyebrow">OSHIKATSU POINT</p><h2>推す前に知りたいこと、<br/>ひと目で。</h2></div>
