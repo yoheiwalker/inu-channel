@@ -21,6 +21,7 @@ export default function PublicAnalytics() {
     const enabled = w.location.origin === publicOrigin &&
       !/^\/(admin|api|auth|login|member)(\/|$)/.test(w.location.pathname) &&
       !/(access_token|refresh_token|token_hash|[?&#](code|token)=)/i.test(w.location.search + w.location.hash);
+    (w as unknown as Record<string, unknown>)['ga-disable-' + measurementId] = !enabled;
     setAllowed(enabled);
     if (!enabled) return;
     w.dataLayer = w.dataLayer || [];
