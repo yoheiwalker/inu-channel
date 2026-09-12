@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { Analytics } from '@vercel/analytics/next';
+import PublicAnalytics from './public-analytics';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -37,7 +37,7 @@ export default function RootLayout({
     <html lang="ja">
       <body>
         {children}
-        {process.env.VERCEL === '1' ? <Analytics /> : null}
+        <PublicAnalytics />
       </body>
     </html>
   );
